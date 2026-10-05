@@ -8,7 +8,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // CI passes -PversionCode (the run number) so every build can be uploaded to Play
-        versionCode (project.findProperty('versionCode') ?: '1').toInteger()
+        versionCode Integer.parseInt((project.findProperty('versionCode') ?: '1').toString())
         versionName "2.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
