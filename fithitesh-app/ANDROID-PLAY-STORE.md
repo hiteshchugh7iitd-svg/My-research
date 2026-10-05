@@ -132,7 +132,7 @@ Google needs a public web link. Easiest options:
 - **Netlify Drop** (free): app.netlify.com/drop → drag the `www` folder → use `https://<name>.netlify.app/privacy.html`; or
 - **GitHub Pages**: needs a public repository (this research repo holds other files, so better to make a small public repo with just `privacy.html`).
 
-**Before publishing, replace `YOUR-EMAIL@example.com` in `www/privacy.html` with your contact email.**
+Contact email in `www/privacy.html`: hiteshchugh7iitd@gmail.com
 
 ## Updating the app later
 
