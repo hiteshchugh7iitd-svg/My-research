@@ -1,0 +1,69 @@
+# Builds the FitHitesh Android app on every push that touches fithitesh-app/.
+# Output (Actions run page → Artifacts):
+#   fithitesh-apk  – app-debug.apk to install on your own phone for testing
+#   fithitesh-aab  – app-release.aab to upload to Google Play (signed only when the
+#                    four FITHITESH_* repository secrets are set; see fithitesh-app/ANDROID-PLAY-STORE.md)
+name: FitHitesh Android build
+
+on:
+  push:
+    paths:
+      - 'fithitesh-app/**'
+      - '.github/workflows/fithitesh-android.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fithitesh-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fithitesh-app/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install and copy web app into Android project
+        run: |
+          npm ci
+          npx cap sync android
+
+      - name: Restore upload key
+        env:
+          KEYSTORE_B64: ${{ secrets.FITHITESH_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "FITHITESH_KEYSTORE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::FITHITESH_KEYSTORE_BASE64 secret not set — the .aab will be unsigned and Play will reject it."
+          fi
+
+      - name: Build APK and AAB
+        working-directory: fithitesh-app/android
+        env:
+          FITHITESH_KEYSTORE_PASSWORD: ${{ secrets.FITHITESH_KEYSTORE_PASSWORD }}
+          FITHITESH_KEY_ALIAS: ${{ secrets.FITHITESH_KEY_ALIAS }}
+          FITHITESH_KEY_PASSWORD: ${{ secrets.FITHITESH_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon -PversionCode=${{ github.run_number }} assembleDebug bundleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fithitesh-apk
+          path: fithitesh-app/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fithitesh-aab
+          path: fithitesh-app/android/app/build/outputs/bundle/release/app-release.aab
