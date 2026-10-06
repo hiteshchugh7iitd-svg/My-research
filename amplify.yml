@@ -1,0 +1,30 @@
+# AWS Amplify build settings for the Sakurai Seminar website.
+# The app lives in the website/ folder of this repository (monorepo app root).
+version: 1
+applications:
+  - appRoot: website
+    backend:
+      phases:
+        preBuild:
+          commands:
+            - nvm install 22 && nvm use 22
+            - npm ci --cache .npm --prefer-offline
+        build:
+          commands:
+            - npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - nvm use 22
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .npm/**/*
+          - node_modules/**/*
