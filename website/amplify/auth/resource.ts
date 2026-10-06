@@ -1,5 +1,4 @@
 import { defineAuth } from '@aws-amplify/backend';
-import { userAdmin } from '../functions/user-admin/resource';
 
 /**
  * Sign-in for seminar members.
@@ -30,7 +29,4 @@ export const auth = defineAuth({
   userAttributes: {
     preferredUsername: { mutable: true, required: false },
   },
-  access: (allow) => [
-    allow.resource(userAdmin).to(['manageUsers', 'manageGroupMembership', 'listUsers', 'listGroupsForUser', 'listUsersInGroup']),
-  ],
 });
