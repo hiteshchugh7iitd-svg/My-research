@@ -66,7 +66,12 @@ export function useModel<T>(model: ModelName): { items: T[]; loading: boolean; e
 export function useContent<T>(id: string, fallback: T): T {
   const { items } = useModel<{ id: string; data: unknown }>('SiteContent');
   const block = items.find((b) => b.id === id);
-  return block ? parseJson<T>(block.data, fallback) : fallback;
+  if (!block) return fallback;
+  const value = parseJson<unknown>(block.data, fallback);
+  // Never let a malformed block break a page: lists must be lists, objects keep their defaults.
+  if (Array.isArray(fallback)) return (Array.isArray(value) ? value : fallback) as T;
+  if (fallback && typeof fallback === 'object') return (value && typeof value === 'object' && !Array.isArray(value) ? { ...fallback, ...value } : fallback) as T;
+  return value as T;
 }
 
 /** Generic async hook for one-off loads. */

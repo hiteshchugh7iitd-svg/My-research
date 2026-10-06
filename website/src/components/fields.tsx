@@ -103,6 +103,7 @@ export function FileField({ label, value, onChange, target, accept = 'image/*', 
     if (res) onChange(res.key);
     uploads.clearFinished(batch);
   };
+  const failed = useUploads(batch).filter((i) => i.state === 'error');
   return (
     <Field label={label} hint={hint}>
       <div className="row" style={{ alignItems: 'flex-start' }}>
@@ -119,6 +120,7 @@ export function FileField({ label, value, onChange, target, accept = 'image/*', 
             {value ? 'Replace — drop a file or click' : 'Drop a file here or click to choose'}
           </DropZone>
           <UploadList items={items} compact />
+          {failed.length > 0 && <div className="alert error small" style={{ marginTop: 6 }}>Upload failed: {failed[0].error}</div>}
         </div>
       </div>
     </Field>

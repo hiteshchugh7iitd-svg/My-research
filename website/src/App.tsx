@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, type ComponentType, type ReactNode } from 'react';
+import { Component, lazy, Suspense, useEffect, type ComponentType, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { isConfigured } from './lib/amplify';
 import { AuthProvider, useAuth } from './lib/auth';
@@ -66,6 +66,25 @@ function SessionEffects() {
   return null;
 }
 
+/** Shows a message instead of a blank page if something unexpected fails while rendering. */
+class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }> {
+  state: { error?: Error } = {};
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error)
+      return (
+        <section className="section container">
+          <h1>Something went wrong</h1>
+          <p>This page could not be displayed. Please reload, or go back to the <a href="/">home page</a>.</p>
+          <p className="small muted">{this.state.error.message}</p>
+        </section>
+      );
+    return this.props.children;
+  }
+}
+
 function NotFound() {
   return (
     <section className="section container">
@@ -92,6 +111,7 @@ export default function App() {
         <ToastProvider>
           <SessionEffects />
           <BrowserRouter>
+            <ErrorBoundary>
             <Suspense fallback={<Loading />}>
             <Routes>
               <Route element={<Layout />}>
@@ -132,6 +152,7 @@ export default function App() {
               </Route>
             </Routes>
             </Suspense>
+            </ErrorBoundary>
           </BrowserRouter>
         </ToastProvider>
       </AuthProvider>

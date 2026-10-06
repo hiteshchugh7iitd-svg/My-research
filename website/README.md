@@ -71,6 +71,21 @@ GitHub (this repo) ──push──▶ AWS Amplify Hosting ──builds──▶
   once from the admin dashboard.
 * `amplify.yml` (repository root) holds the Amplify build settings.
 
+## Current deployment
+
+| | |
+|---|---|
+| Website | https://main.d1emmy6bi3ik7m.amplifyapp.com |
+| Amplify app | `Sakurai-Seminar-Website` (`d1emmy6bi3ik7m`), branch `main`, region Tokyo (ap-northeast-1) |
+| Backend stack | CloudFormation `amplify-d1emmy6bi3ik7m-main-branch-0d37a85db6` |
+| AWS account plan | Free plan (credits). A US$1/month budget alert emails the account owner. |
+
+This app was deployed directly through the AWS APIs, without the GitHub connection, so pushing
+to GitHub does **not** redeploy it. Content changes made in the admin console go live
+immediately and never need a redeploy. To deploy a *code* change, either repeat the direct
+deployment, or create a GitHub-connected Amplify app as described below. That app gets its own
+new backend, so export a backup first and import it there.
+
 ## First deployment (about 20 minutes)
 
 1. **Connect GitHub to Amplify.** In the AWS Console, open **Amplify**, choose

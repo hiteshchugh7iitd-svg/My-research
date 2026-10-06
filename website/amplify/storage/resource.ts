@@ -20,11 +20,13 @@ export const storage = defineStorage({
     ],
     'members/{entity_id}/*': [
       allow.guest.to(['read']),
+      allow.authenticated.to(['read']),
       allow.entity('identity').to(['read', 'write', 'delete']),
       allow.groups(['professor', 'admin']).to(['read', 'write', 'delete']),
     ],
     'submissions/{entity_id}/*': [
       allow.guest.to(['read']),
+      allow.authenticated.to(['read']),
       allow.entity('identity').to(['read', 'write', 'delete']),
       allow.groups(['professor', 'admin']).to(['read', 'write', 'delete']),
     ],

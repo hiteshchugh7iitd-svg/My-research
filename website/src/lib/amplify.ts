@@ -53,13 +53,15 @@ export function unwrap<T>(res: { data?: T | null; errors?: { message: string }[]
 
 /** Parses a.json() fields, which arrive either as objects or as JSON strings. */
 export function parseJson<T>(value: unknown, fallback: T): T {
-  if (value == null || value === '') return fallback;
-  if (typeof value === 'string') {
+  let v = value;
+  // Values can arrive JSON-encoded once or twice depending on how they were written.
+  for (let i = 0; i < 3 && typeof v === 'string'; i++) {
+    if (v === '') return fallback;
     try {
-      return JSON.parse(value) as T;
+      v = JSON.parse(v);
     } catch {
       return fallback;
     }
   }
-  return value as T;
+  return v == null ? fallback : (v as T);
 }

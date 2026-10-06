@@ -121,8 +121,9 @@ export const uploads = {
       pump();
     }
   },
+  /** Removes successfully finished uploads from the list; failed ones stay visible so they can be retried. */
   clearFinished(batch?: string) {
-    items = items.filter((i) => (batch && i.batch !== batch) || i.state === 'queued' || i.state === 'uploading');
+    items = items.filter((i) => (batch && i.batch !== batch) || !(i.state === 'done' || i.state === 'duplicate' || i.state === 'cancelled'));
     emit();
   },
 };

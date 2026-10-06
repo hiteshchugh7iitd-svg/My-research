@@ -59,8 +59,19 @@ export async function prepareImage(file: File, maxDim = 2000): Promise<File> {
 }
 
 export async function sha256(blob: Blob): Promise<string> {
-  const buf = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
-  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
+  const data = new Uint8Array(await blob.arrayBuffer());
+  if (globalThis.crypto?.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  // crypto.subtle only exists on https pages; fall back to two FNV-1a hashes plus the size.
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  for (let i = 0; i < data.length; i++) {
+    h1 = Math.imul(h1 ^ data[i], 0x01000193) >>> 0;
+    h2 = Math.imul(h2 ^ data[data.length - 1 - i], 0x811c9dc5) >>> 0;
+  }
+  return [h1, h2, data.length].map((n) => n.toString(16).padStart(8, '0')).join('').padEnd(64, '0');
 }
 
 export const safeName = (name: string) =>
