@@ -1,0 +1,18 @@
+{
+  "site_title": "Hitesh",
+  "site_subtitle": "Research · GSICS Kobe University",
+  "author": "Hitesh",
+  "tagline": "School disaster resilience, early warning and public-sector governance",
+  "nav": [
+    { "label": "Home", "url": "/", "order": 0 },
+    { "label": "Research", "url": "/research/", "order": 20 },
+    { "label": "Papers", "url": "/papers/", "order": 30 },
+    { "label": "Progress", "url": "/progress/", "order": 40 },
+    { "label": "News", "url": "/news/", "order": 50 }
+  ],
+  "links": [],
+  "research_intro": "Three connected projects on how warnings turn into protection for schoolchildren.",
+  "papers_intro": "Working papers, conference papers and publications.",
+  "progress_intro": "Dated milestones across all projects.",
+  "footer_text": "© Hitesh. Academic work carried out at the Graduate School of International Cooperation Studies, Kobe University. Views expressed are the author's own and do not represent the Government of India."
+}

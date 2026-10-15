@@ -1,0 +1,194 @@
+backend:
+  name: github
+  repo: hiteshchugh7iitd-svg/My-research
+  branch: main
+  base_url: https://api.netlify.com
+  auth_endpoint: auth
+media_folder: static/uploads
+public_folder: /uploads
+publish_mode: simple
+locale: en
+
+# ---- Reusable page-builder blocks: add ANY section to ANY page ----
+collections:
+  - name: site
+    label: "1. Homepage and site settings"
+    files:
+      - label: Homepage
+        name: home
+        file: content/home.md
+        fields:
+          - { label: Small line above title, name: eyebrow, widget: string, required: false }
+          - { label: Big title, name: hero_title, widget: string }
+          - { label: Intro text under title, name: hero_text, widget: text }
+          - { label: Your photo, name: photo, widget: image, required: false }
+          - { label: Hero buttons, name: hero_buttons, widget: list, required: false, fields: [ {label: Label, name: label, widget: string}, {label: URL, name: url, widget: string} ] }
+          - { label: Text below hero, name: body, widget: markdown, required: false }
+          - &blocks
+            label: Homepage sections (reorder, add, delete)
+            name: sections
+            widget: list
+            required: false
+            types:
+            - { label: Text, name: text, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: Text, name: body, widget: markdown} ] }
+            - { label: Cards, name: cards, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: Cards, name: items, widget: list, fields: [ {label: Title, name: title, widget: string}, {label: Text, name: text, widget: text, required: false}, {label: Link, name: link, widget: string, required: false}, {label: Tag, name: tag, widget: string, required: false} ]} ] }
+            - { label: Timeline / dated list, name: timeline, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: Entries, name: items, widget: list, fields: [ {label: Date or period, name: date, widget: string}, {label: Title, name: title, widget: string}, {label: Text, name: text, widget: text, required: false} ]} ] }
+            - { label: Downloads (files), name: files, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: Files, name: items, widget: list, fields: [ {label: Title, name: title, widget: string}, {label: File, name: file, widget: file}, {label: Note, name: note, widget: string, required: false} ]} ] }
+            - { label: Image, name: image, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: Image, name: image, widget: image}, {label: Caption, name: caption, widget: string, required: false} ] }
+            - { label: Embed (iframe / map / dashboard), name: embed, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: Page URL to embed, name: embed_url, widget: string, required: false}, {label: Height px, name: height, widget: number, default: 600}, {label: Custom HTML (optional), name: html, widget: text, required: false} ] }
+            - { label: Buttons, name: buttons, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: Buttons, name: items, widget: list, fields: [ {label: Label, name: label, widget: string}, {label: URL, name: url, widget: string} ]} ] }
+            - { label: "Auto: project cards", name: auto_projects, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false} ] }
+            - { label: "Auto: latest news", name: auto_news, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: How many, name: count, widget: number, default: 3} ] }
+            - { label: "Auto: recent papers", name: auto_papers, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: How many, name: count, widget: number, default: 3} ] }
+            - { label: "Auto: progress timeline", name: auto_progress, widget: object, fields: [ {label: Heading, name: heading, widget: string, required: false}, {label: How many, name: count, widget: number, default: 3} ] }
+      - label: Site settings, menu and footer
+        name: settings
+        file: content/settings.json
+        fields:
+          - { label: Site title, name: site_title, widget: string }
+          - { label: Subtitle (under title in header), name: site_subtitle, widget: string, required: false }
+          - { label: Your full name, name: author, widget: string }
+          - { label: Tagline, name: tagline, widget: string, required: false }
+          - { label: Menu (label, link, order), name: nav, widget: list, fields: [ {label: Label, name: label, widget: string}, {label: Link, name: url, widget: string}, {label: Order (lower = earlier), name: order, widget: number} ] }
+          - { label: Social and profile links, name: links, widget: list, required: false, fields: [ {label: Label, name: label, widget: string}, {label: URL, name: url, widget: string} ] }
+          - { label: Research page intro, name: research_intro, widget: text, required: false }
+          - { label: Papers page intro, name: papers_intro, widget: text, required: false }
+          - { label: Progress page intro, name: progress_intro, widget: text, required: false }
+          - { label: Footer text, name: footer_text, widget: markdown }
+
+  - name: pages
+    label: "2. Pages (About me and any new page)"
+    label_singular: Page
+    folder: content/pages
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{slug}}"
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Short description, name: description, widget: text, required: false }
+      - { label: Show in top menu, name: show_in_menu, widget: boolean, default: false }
+      - { label: Menu label (if different), name: menu_label, widget: string, required: false }
+      - { label: Menu order (lower = earlier), name: menu_order, widget: number, default: 60 }
+      - { label: Hide this page (draft), name: draft, widget: boolean, default: false }
+      - { label: Main text, name: body, widget: markdown, required: false }
+      - { <<: *blocks, label: Page sections (add anything), name: blocks }
+
+  - name: projects
+    label: "3. Research projects"
+    label_singular: Project
+    folder: content/projects
+    create: true
+    delete: true
+    extension: md
+    slug: "{{slug}}"
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Status, name: status, widget: select, options: [Planned, Ongoing, Completed, On hold], default: Ongoing }
+      - { label: Place, name: place, widget: string, required: false }
+      - { label: One-paragraph summary, name: summary, widget: text }
+      - { label: Order on site, name: order, widget: number, default: 10 }
+      - { label: Buttons (dashboard, maps, files), name: links, widget: list, required: false, fields: [ {label: Label, name: label, widget: string}, {label: URL, name: url, widget: string} ] }
+      - { label: Hide (draft), name: draft, widget: boolean, default: false }
+      - { label: Main text, name: body, widget: markdown, required: false }
+      - { <<: *blocks, label: Page sections (add anything), name: blocks }
+
+  - name: papers
+    label: "4. Papers (public)"
+    label_singular: Paper
+    folder: content/papers
+    create: true
+    delete: true
+    extension: md
+    slug: "{{slug}}"
+    media_folder: /static/uploads/papers
+    public_folder: /uploads/papers
+    summary: "{{title}} ({{status}})"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Authors, name: authors, widget: string, required: false }
+      - { label: Venue / journal / conference, name: venue, widget: string, required: false }
+      - { label: Date, name: date, widget: datetime, format: YYYY-MM-DD, date_format: YYYY-MM-DD, time_format: false }
+      - { label: Status, name: status, widget: select, options: [Idea, Drafting, Under review, Submitted, Accepted, Published], default: Drafting }
+      - { label: Project, name: project, widget: relation, collection: projects, search_fields: [title], value_field: "{{slug}}", display_fields: [title], required: false }
+      - { label: Abstract, name: abstract, widget: text, required: false }
+      - { label: Upload PDF / file, name: file, widget: file, required: false }
+      - { label: External link (DOI, journal), name: link, widget: string, required: false }
+      - { label: Hide (draft), name: draft, widget: boolean, default: false }
+      - { label: Notes, name: body, widget: markdown, required: false }
+
+  - name: progress
+    label: "5. Research progress"
+    label_singular: Progress update
+    folder: content/progress
+    create: true
+    delete: true
+    extension: md
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    summary: "{{date}} {{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime, format: YYYY-MM-DD, date_format: YYYY-MM-DD, time_format: false }
+      - { label: Project, name: project, widget: relation, collection: projects, search_fields: [title], value_field: "{{slug}}", display_fields: [title], required: false }
+      - { label: Summary, name: summary, widget: text, required: false }
+      - { label: Hide (draft), name: draft, widget: boolean, default: false }
+      - { label: Details, name: body, widget: markdown, required: false }
+
+  - name: news
+    label: "6. News"
+    label_singular: News item
+    folder: content/news
+    create: true
+    delete: true
+    extension: md
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    summary: "{{date}} {{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Date, name: date, widget: datetime, format: YYYY-MM-DD, date_format: YYYY-MM-DD, time_format: false }
+      - { label: Project (optional), name: project, widget: relation, collection: projects, search_fields: [title], value_field: "{{slug}}", display_fields: [title], required: false }
+      - { label: Short summary, name: summary, widget: text, required: false }
+      - { label: Image, name: image, widget: image, required: false }
+      - { label: Hide (draft), name: draft, widget: boolean, default: false }
+      - { label: Text, name: body, widget: markdown }
+      - { <<: *blocks, label: Page sections (add anything), name: blocks }
+
+  - name: private_pages
+    label: "7. PRIVATE pages (password only)"
+    label_singular: Private page
+    folder: content/private/pages
+    create: true
+    delete: true
+    extension: md
+    slug: "{{slug}}"
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Short description, name: description, widget: text, required: false }
+      - { label: Hide (draft), name: draft, widget: boolean, default: false }
+      - { label: Text, name: body, widget: markdown, required: false }
+      - { <<: *blocks, label: Page sections (add anything), name: blocks }
+
+  - name: private_papers
+    label: "8. PRIVATE papers and files"
+    label_singular: Private file
+    folder: content/private/papers
+    create: true
+    delete: true
+    extension: md
+    slug: "{{slug}}"
+    media_folder: /static/private/files
+    public_folder: /private/files
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Authors, name: authors, widget: string, required: false }
+      - { label: Date, name: date, widget: datetime, format: YYYY-MM-DD, date_format: YYYY-MM-DD, time_format: false }
+      - { label: Status, name: status, widget: string, required: false }
+      - { label: Project, name: project, widget: relation, collection: projects, search_fields: [title], value_field: "{{slug}}", display_fields: [title], required: false }
+      - { label: Note / abstract, name: abstract, widget: text, required: false }
+      - { label: Upload file, name: file, widget: file, required: false }
+      - { label: Hide (draft), name: draft, widget: boolean, default: false }
