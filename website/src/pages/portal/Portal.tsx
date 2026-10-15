@@ -21,8 +21,11 @@ function ProfileForm({ member }: { member: MemberView }) {
     bio: p?.bio ?? '',
     bioJa: p?.bioJa ?? '',
     country: p?.country ?? '',
+    countryJa: p?.countryJa ?? '',
     thesisTitle: p?.thesisTitle ?? '',
+    thesisTitleJa: p?.thesisTitleJa ?? '',
     currentPosition: p?.currentPosition ?? '',
+    currentPositionJa: p?.currentPositionJa ?? '',
     contactEmail: p?.contactEmail ?? '',
     interests: (p?.interests ?? []).join(', '),
     photoKey: p?.photoKey ?? null,
@@ -43,8 +46,11 @@ function ProfileForm({ member }: { member: MemberView }) {
         bio: form.bio || null,
         bioJa: form.bioJa || null,
         country: form.country || null,
+        countryJa: form.countryJa || null,
         thesisTitle: form.thesisTitle || null,
+        thesisTitleJa: form.thesisTitleJa || null,
         currentPosition: form.currentPosition || null,
+        currentPositionJa: form.currentPositionJa || null,
         contactEmail: form.contactEmail || null,
         interests: form.interests.split(',').map((s) => s.trim()).filter(Boolean),
         photoKey: form.photoKey,
@@ -88,11 +94,18 @@ function ProfileForm({ member }: { member: MemberView }) {
       <Field label="About you (日本語, optional)"><textarea value={form.bioJa} onChange={(e) => set('bioJa', e.target.value)} /></Field>
       <div className="grid2">
         <Field label="Country or region"><input type="text" value={form.country} onChange={(e) => set('country', e.target.value)} /></Field>
+        <Field label="Country or region (日本語)"><input type="text" value={form.countryJa} onChange={(e) => set('countryJa', e.target.value)} /></Field>
+      </div>
+      <div className="grid2">
         <Field label="Public contact email (optional)"><input type="email" value={form.contactEmail} onChange={(e) => set('contactEmail', e.target.value)} /></Field>
       </div>
       <div className="grid2">
         <Field label="Thesis title"><input type="text" value={form.thesisTitle} onChange={(e) => set('thesisTitle', e.target.value)} /></Field>
+        <Field label="Thesis title (日本語)"><input type="text" value={form.thesisTitleJa} onChange={(e) => set('thesisTitleJa', e.target.value)} /></Field>
+      </div>
+      <div className="grid2">
         <Field label="Current position (for alumni)"><input type="text" value={form.currentPosition} onChange={(e) => set('currentPosition', e.target.value)} /></Field>
+        <Field label="Current position (日本語)"><input type="text" value={form.currentPositionJa} onChange={(e) => set('currentPositionJa', e.target.value)} /></Field>
       </div>
       <Field label="Research interests" hint="Comma-separated, e.g. school safety, evacuation, Nepal"><input type="text" value={form.interests} onChange={(e) => set('interests', e.target.value)} /></Field>
       <LinksField label="Links" value={form.links} onChange={(v) => set('links', v)} />

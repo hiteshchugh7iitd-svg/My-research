@@ -299,6 +299,28 @@ If you make a mistake in a text block, use **Restore default** to go back to the
 
 ---
 
+## PART 9 — English and Japanese (日本語)
+
+Every visitor can switch the whole website between **English** and **日本語** using the two words at the top right of every page. The choice is remembered on that computer. You can also send a link that opens in Japanese by adding `?lang=ja` to the address, for example `https://main.d1emmy6bi3ik7m.amplifyapp.com/?lang=ja`.
+
+**What changes when someone selects Japanese:** the menus, buttons, headings and all the standard text (Prof. Sakurai's profile, research themes, courses, career, contact details and so on), dates (for example 2026年6月26日), programme names and news categories.
+
+**What you must translate yourself:** things you add later. Every form for news, albums, awards, projects, visitors and students has extra boxes marked **(日本語)**. Fill them in to show Japanese text to Japanese-language visitors.
+
+| I want Japanese for… | Where to type it |
+|---|---|
+| A news post | Admin → News & events → open the post → **Title (日本語)**, **Summary (日本語)**, **Full text (日本語)**, **Location (日本語)** |
+| A gallery album | Admin → Gallery → open the album → **Album title (日本語)**, **Description (日本語)** |
+| The cover page, headlines, buttons, Prof. Sakurai's profile, contact details, career, courses | Admin → Cover page & site text → each box has a **(日本語)** twin directly under it |
+| An award, a project, a visiting scholar | The matching Admin page → boxes marked **(日本語)** |
+| A student's page | Admin → Students & alumni → Edit, or the student's own **My page → My profile** → boxes marked **(日本語)** |
+
+**If a Japanese box is left empty**, visitors who chose Japanese see the English text for that item. Nothing disappears.
+
+The standard texts were translated by a computer program as a first draft. Please ask a Japanese speaker, ideally Prof. Sakurai, to read the Japanese version of each page once. Correct anything in **Admin → Cover page & site text** by editing the **(日本語)** boxes.
+
+---
+
 ## Very short cheat sheet
 
 | I want to… | Click… |

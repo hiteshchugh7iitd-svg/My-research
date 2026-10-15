@@ -57,7 +57,7 @@ function useVisitCount(): number | undefined {
 }
 
 export default function Layout() {
-  const { t, lang, setLang } = useLang();
+  const { t, tx, L, lang, setLang } = useLang();
   const auth = useAuth();
   const site = useContent('site', DEFAULTS.site);
   const contact = useContent('contact', DEFAULTS.contact);
@@ -90,7 +90,7 @@ export default function Layout() {
       </a>
       <div className="topbar">
         <div className="container">
-          <span className="affil">Kobe University · Graduate School of International Cooperation Studies · Cross-appointed IRIDeS, Tohoku University</span>
+          <span className="affil">{tx('Kobe University · Graduate School of International Cooperation Studies · Cross-appointed IRIDeS, Tohoku University')}</span>
           <a href={`mailto:${contact.email}`}>{contact.email}</a>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function Layout() {
                 {lang === 'ja' ? site.titleJa : site.title}
                 {lang === 'en' && <span className="ja">{site.titleJa}</span>}
               </div>
-              <div className="brand-sub">{lang === 'ja' ? t('labSub') : site.subtitle}</div>
+              <div className="brand-sub">{L(site, 'subtitle')}</div>
             </div>
           </Link>
           <div className="mast-tools">
@@ -128,7 +128,7 @@ export default function Layout() {
       <nav className="mainnav" aria-label="Main">
         <div className="container">
           <button className="nav-toggle" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen}>
-            ☰ Menu
+            {tx('☰ Menu')}
           </button>
           <ul className={menuOpen ? 'open' : ''}>
             {NAV.map((n) => (
@@ -151,7 +151,7 @@ export default function Layout() {
           </div>
         </div>
       </nav>
-      {site.announcement && <div className="announcement">{site.announcement}</div>}
+      {site.announcement && <div className="announcement">{L(site, 'announcement')}</div>}
 
       <main id="main">
         <Outlet />
@@ -160,58 +160,58 @@ export default function Layout() {
       <footer className="footer">
         <div className="container cols">
           <div>
-            <h4>Address</h4>
-            <p style={{ whiteSpace: 'pre-line' }}>{contact.address}</p>
+            <h4>{tx('Address')}</h4>
+            <p style={{ whiteSpace: 'pre-line' }}>{L(contact, 'address')}</p>
             <p>
-              E-mail: <a href={`mailto:${contact.email}`}>{contact.email}</a>
+              {tx('E-mail:')} <a href={`mailto:${contact.email}`}>{contact.email}</a>
               {contact.phone && (
                 <>
                   <br />
-                  Tel: {contact.phone}
+                  {tx('Tel:')} {contact.phone}
                 </>
               )}
             </p>
           </div>
           <div>
-            <h4>The seminar</h4>
+            <h4>{tx('The seminar')}</h4>
             <ul>
-              <li><Link to="/professor">Prof. Sakurai</Link></li>
-              <li><Link to="/research">Research themes & projects</Link></li>
-              <li><Link to="/teaching">Teaching & joining the seminar</Link></li>
-              <li><Link to="/members">Students</Link> · <Link to="/alumni">Alumni</Link></li>
-              <li><Link to="/news?category=STUDENT_ACTIVITY">Student activities</Link></li>
+              <li><Link to="/professor">{t('professor')}</Link></li>
+              <li><Link to="/research">{tx('Research themes & projects')}</Link></li>
+              <li><Link to="/teaching">{tx('Teaching & joining the seminar')}</Link></li>
+              <li><Link to="/members">{t('members')}</Link> · <Link to="/alumni">{t('alumni')}</Link></li>
+              <li><Link to="/news?category=STUDENT_ACTIVITY">{tx('Student activities')}</Link></li>
             </ul>
           </div>
           <div>
-            <h4>Upcoming events</h4>
+            <h4>{tx('Upcoming events')}</h4>
             {upcoming.length ? (
               <ul>
                 {upcoming.map((p) => (
                   <li key={p.id}>
-                    <span className="small">{p.eventDate}</span> · <Link to={`/news/${p.slug}`}>{p.title}</Link>
+                    <span className="small">{p.eventDate}</span> · <Link to={`/news/${p.slug}`}>{L(p, 'title')}</Link>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="small">No events scheduled. See <Link to="/news">News & Events</Link>.</p>
+              <p className="small">{tx('No events scheduled.')} <Link to="/news">{t('news')}</Link></p>
             )}
           </div>
           <div className="visits">
-            <h4>Website</h4>
+            <h4>{tx('Website')}</h4>
             <p>
               <b>{visits !== undefined ? visits.toLocaleString() : '—'}</b> {t('visits')}
             </p>
             <ul>
               <li><a href={contact.instagram} target="_blank" rel="noreferrer">Instagram</a></li>
               <li><a href="https://researchmap.jp/aikosak" target="_blank" rel="noreferrer">researchmap</a></li>
-              <li>{auth.signedIn ? <Link to="/portal">Members area</Link> : <Link to="/login">Member sign-in</Link>}</li>
+              <li>{auth.signedIn ? <Link to="/portal">{tx('Members area')}</Link> : <Link to="/login">{tx('Member sign-in')}</Link>}</li>
             </ul>
           </div>
         </div>
         <div className="bottom">
           <div className="container">
-            <span>© {new Date().getFullYear()} Aiko Sakurai Seminar, Kobe University GSICS.</span>
-            <span>{site.motto}</span>
+            <span>{lang === 'ja' ? `© ${new Date().getFullYear()} 桜井愛子ゼミ 神戸大学国際協力研究科` : `© ${new Date().getFullYear()} Aiko Sakurai Seminar, Kobe University GSICS.`}</span>
+            <span>{L(site, 'motto')}</span>
           </div>
         </div>
       </footer>

@@ -2,12 +2,14 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Publication } from '../../lib/amplify';
 import { KIND_LABELS, KIND_SINGULAR, normalize } from '../../lib/format';
+import { useLang } from '../../lib/i18n';
 import { useModel } from '../../lib/store';
 import { FileLink, Loading, PageHeader } from '../../components/ui';
 
 const KINDS = ['PAPER', 'BOOK', 'REPORT', 'TALK'] as const;
 
 export default function Publications() {
+  const { tx } = useLang();
   const { items, loading } = useModel<Publication>('Publication');
   const [params, setParams] = useSearchParams();
   const kind = params.get('kind') ?? 'ALL';
@@ -41,9 +43,9 @@ export default function Publications() {
   return (
     <>
       <PageHeader
-        eyebrow="Publications"
-        title="Complete list of works"
-        intro="Papers, books and chapters, reports and proceedings, and invited talks by Prof. Sakurai and seminar members. Records follow Prof. Sakurai’s researchmap profile."
+        eyebrow={tx('Publications')}
+        title={tx('Complete list of works')}
+        intro={tx('Papers, books and chapters, reports and proceedings, and invited talks by Prof. Sakurai and seminar members. Records follow Prof. Sakurai’s researchmap profile.')}
       />
       <section className="section">
         <div className="container">
@@ -51,40 +53,40 @@ export default function Publications() {
             {KINDS.map((k) => (
               <div className="stat" key={k}>
                 <b>{items.filter((p) => p.kind === k).length}</b>
-                <span>{KIND_LABELS[k]}</span>
+                <span>{tx(KIND_LABELS[k])}</span>
               </div>
             ))}
             <div className="stat">
               <b>{items.filter((p) => p.peerReviewed).length}</b>
-              <span>Peer-reviewed</span>
+              <span>{tx('Peer-reviewed')}</span>
             </div>
           </div>
           <div className="spread" style={{ marginBottom: 16 }}>
             <div className="chips">
               <button className={'chip' + (kind === 'ALL' ? ' active' : '')} onClick={() => set('kind', 'ALL')}>
-                All<span className="n">{items.length}</span>
+                {tx('All')}<span className="n">{items.length}</span>
               </button>
               {KINDS.map((k) => (
                 <button key={k} className={'chip' + (kind === k ? ' active' : '')} onClick={() => set('kind', k)}>
-                  {KIND_LABELS[k]}
+                  {tx(KIND_LABELS[k])}
                   <span className="n">{items.filter((p) => p.kind === k).length}</span>
                 </button>
               ))}
             </div>
             <div className="row">
               <label className="check">
-                <input type="checkbox" checked={peer} onChange={(e) => setPeer(e.target.checked)} /> Peer-reviewed only
+                <input type="checkbox" checked={peer} onChange={(e) => setPeer(e.target.checked)} /> {tx('Peer-reviewed only')}
               </label>
               <select className="input" style={{ width: 'auto' }} value={year} onChange={(e) => set('year', e.target.value)} aria-label="Year">
-                <option value="ALL">All years</option>
+                <option value="ALL">{tx('All years')}</option>
                 {years.map((y) => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
-              <input className="input" style={{ width: 220 }} placeholder="Search title, venue, author…" value={q} onChange={(e) => setQ(e.target.value)} />
+              <input className="input" style={{ width: 220 }} placeholder={tx('Search title, venue, author…')} value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
           </div>
-          <p className="muted small">{results.length} records</p>
+          <p className="muted small">{results.length} {tx('records')}</p>
           {loading ? (
             <Loading />
           ) : (
@@ -95,13 +97,13 @@ export default function Publications() {
                   {list.map((p) => (
                     <li key={p.id} className="pub">
                       <div className="yr">
-                        <span className="tag grey" style={{ fontSize: '0.62rem' }}>{KIND_SINGULAR[p.kind ?? 'PAPER']}</span>
+                        <span className="tag grey" style={{ fontSize: '0.62rem' }}>{tx(KIND_SINGULAR[p.kind ?? 'PAPER'])}</span>
                       </div>
                       <div>
                         <div className="t">{p.title}</div>
                         {p.authors && <div className="v">{p.authors}</div>}
-                        <div className="v">{[p.venue, p.date].filter(Boolean).join(' · ')}</div>
-                        {(p.note || p.invited) && <div className="n">{p.note || 'Invited'}</div>}
+                        <div className="v">{[p.venue, tx(p.date)].filter(Boolean).join(' · ')}</div>
+                        {(p.note || p.invited) && <div className="n">{tx(p.note) || tx('Invited')}</div>}
                         <div className="links">
                           {p.doi && <a href={`https://doi.org/${p.doi}`} target="_blank" rel="noreferrer">DOI {p.doi}</a>}
                           {p.url && <a href={p.url} target="_blank" rel="noreferrer">Link ↗</a>}

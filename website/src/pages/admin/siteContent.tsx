@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { parseJson, userClient, unwrap, type SiteContent } from '../../lib/amplify';
 import { changed } from '../../lib/audit';
 import { DEFAULTS, type ContentId } from '../../lib/defaults';
+import { toJa } from '../../lib/ja';
 import { Field, FileField } from '../../components/fields';
 import { Loading, useToast } from '../../components/ui';
 import { useLiveModel } from './crud';
@@ -10,7 +11,7 @@ import { useLiveModel } from './crud';
 type F = { name: string; label: string; type?: 'text' | 'textarea' | 'image' | 'checkbox' | 'number'; hint?: string };
 type Block = { id: ContentId; title: string; group: string; help: string; kind: 'object' | 'list'; fields: F[]; itemLabel?: (row: any) => string };
 
-const BLOCKS: Block[] = [
+const RAW_BLOCKS: Block[] = [
   {
     id: 'heroSlides', group: 'Home page', title: 'Cover slideshow', kind: 'list',
     help: 'The large photos at the top of the home page. Each slide can have its own headline, text and “Read more” link; empty fields fall back to the site motto and introduction.',
@@ -101,6 +102,38 @@ const BLOCKS: Block[] = [
   { id: 'partnerLinks', group: 'Research & teaching', title: 'Partner links', kind: 'list', help: 'Contact page.', fields: [{ name: 'label', label: 'Label' }, { name: 'url', label: 'URL' }], itemLabel: (r) => r.label },
 ];
 
+/** Fields that are not translated (links, numbers, images, ids). */
+const NO_JA = new Set(['image', 'photo', 'link', 'url', 'email', 'phone', 'mapUrl', 'instagram', 'num', 'period', 'name', 'newsCount', 'ctaPrimaryLink', 'ctaSecondaryLink']);
+
+/** Adds a “(日本語)” twin after every translatable text field so each can be edited in both languages. */
+function withJa(fields: F[]): F[] {
+  const names = new Set(fields.map((f) => f.name));
+  const out: F[] = [];
+  for (const f of fields) {
+    out.push(f);
+    const translatable = (!f.type || f.type === 'text' || f.type === 'textarea') && !NO_JA.has(f.name) && !f.name.endsWith('Ja') && !names.has(f.name + 'Ja');
+    if (translatable) out.push({ ...f, name: f.name + 'Ja', label: `${f.label} (日本語)`, hint: undefined });
+  }
+  return out;
+}
+
+const BLOCKS: Block[] = RAW_BLOCKS.map((b) => ({ ...b, fields: withJa(b.fields) }));
+
+/** Pre-fills empty Japanese fields with the built-in translation so it can be reviewed and edited. */
+function fillJa(block: Block, row: any): any {
+  if (!row || typeof row !== 'object') return row;
+  const out = { ...row };
+  for (const f of block.fields) {
+    if (!f.name.endsWith('Ja')) continue;
+    const en = out[f.name.slice(0, -2)];
+    if (!out[f.name] && typeof en === 'string' && en) {
+      const ja = toJa(en);
+      if (ja !== en) out[f.name] = ja;
+    }
+  }
+  return out;
+}
+
 function Input({ f, value, onChange }: { f: F; value: any; onChange: (v: any) => void }) {
   if (f.type === 'image') return <FileField label={f.label} value={value || null} onChange={(k) => onChange(k ?? '')} target={{ area: 'site', folder: 'content' }} hint={f.hint} />;
   if (f.type === 'checkbox') return <label className="check"><input type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)} /> {f.label}</label>;
@@ -114,7 +147,8 @@ function BlockEditor({ block, stored, onSaved }: { block: Block; stored?: SiteCo
   const fallback = DEFAULTS[block.id] as any;
   const initial = useMemo(() => {
     const v = parseJson<any>(stored?.data, fallback);
-    return block.kind === 'object' ? { ...fallback, ...v } : v;
+    if (block.kind === 'object') return fillJa(block, { ...fallback, ...v });
+    return (Array.isArray(v) ? v : fallback).map((r: any) => fillJa(block, r));
   }, [stored?.data, fallback, block.kind]);
   const [value, setValue] = useState<any>(initial);
   const [open, setOpen] = useState<number | null>(null);

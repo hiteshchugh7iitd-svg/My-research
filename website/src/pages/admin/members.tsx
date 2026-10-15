@@ -37,11 +37,14 @@ const PROFILE: FieldDef[] = [
   { name: 'researchTopic', label: 'Research topic', type: 'text', half: true },
   { name: 'researchTopicJa', label: 'Research topic (日本語)', type: 'text', half: true },
   { name: 'country', label: 'Country or region', type: 'text', half: true },
+  { name: 'countryJa', label: 'Country or region (日本語)', type: 'text', half: true },
   { name: 'contactEmail', label: 'Public contact email', type: 'text', half: true },
   { name: 'bio', label: 'Biography', type: 'textarea' },
   { name: 'bioJa', label: 'Biography (日本語)', type: 'textarea' },
   { name: 'thesisTitle', label: 'Thesis title', type: 'text', half: true },
+  { name: 'thesisTitleJa', label: 'Thesis title (日本語)', type: 'text', half: true },
   { name: 'currentPosition', label: 'Current position (alumni)', type: 'text', half: true },
+  { name: 'currentPositionJa', label: 'Current position (日本語)', type: 'text', half: true },
   { name: 'interests', label: 'Research interests', type: 'tags' },
   { name: 'cvKey', label: 'CV (PDF)', type: 'file', folder: 'members' },
 ];
@@ -62,11 +65,14 @@ function formFrom(m?: MemberView): Record<string, any> {
     researchTopic: p?.researchTopic ?? '',
     researchTopicJa: p?.researchTopicJa ?? '',
     country: p?.country ?? '',
+    countryJa: p?.countryJa ?? '',
     contactEmail: p?.contactEmail ?? '',
     bio: p?.bio ?? '',
     bioJa: p?.bioJa ?? '',
     thesisTitle: p?.thesisTitle ?? '',
+    thesisTitleJa: p?.thesisTitleJa ?? '',
     currentPosition: p?.currentPosition ?? '',
+    currentPositionJa: p?.currentPositionJa ?? '',
     interests: (p?.interests ?? []).join(', '),
     cvKey: p?.cvKey ?? '',
   };
@@ -92,7 +98,7 @@ export async function saveMember(form: Record<string, any>, all: Member[], exist
     ? unwrap(await userClient.models.Member.update({ id: existing.id, ...roster }))
     : unwrap(await userClient.models.Member.create(roster));
   const profileFields: Record<string, any> = {};
-  for (const k of ['photoKey', 'researchTopic', 'researchTopicJa', 'country', 'contactEmail', 'bio', 'bioJa', 'thesisTitle', 'currentPosition', 'cvKey']) {
+  for (const k of ['photoKey', 'researchTopic', 'researchTopicJa', 'country', 'countryJa', 'contactEmail', 'bio', 'bioJa', 'thesisTitle', 'thesisTitleJa', 'currentPosition', 'currentPositionJa', 'cvKey']) {
     if (k in form) profileFields[k] = nul(form[k]);
   }
   if ('interests' in form) profileFields.interests = String(form.interests ?? '').split(',').map((s) => s.trim()).filter(Boolean);

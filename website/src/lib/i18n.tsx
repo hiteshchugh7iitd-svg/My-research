@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { setFormatLang } from './format';
+import { toJa } from './ja';
 
 export type Lang = 'en' | 'ja';
 
@@ -32,14 +34,31 @@ const DICT = {
 
 export type Key = keyof typeof DICT;
 
-const LangContext = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: Key) => string }>({
+type Rec = Record<string, unknown>;
+
+type LangApi = {
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  /** Navigation labels. */
+  t: (k: Key) => string;
+  /** Translates a fixed piece of English interface text (or default content) when in Japanese. */
+  tx: (en: string | null | undefined) => string;
+  /** Reads a field in the current language: the “…Ja” field if filled in, else a known translation, else the English text. */
+  L: (obj: Rec | null | undefined, key: string) => string;
+};
+
+const LangContext = createContext<LangApi>({
   lang: 'en',
   setLang: () => undefined,
   t: (k) => DICT[k][0],
+  tx: (en) => en ?? '',
+  L: (o, k) => String((o?.[k] as string | undefined) ?? ''),
 });
 
 function initialLang(): Lang {
   try {
+    const q = new URLSearchParams(window.location.search).get('lang');
+    if (q === 'en' || q === 'ja') return q;
     const saved = localStorage.getItem('lang');
     if (saved === 'en' || saved === 'ja') return saved;
   } catch {
@@ -50,9 +69,12 @@ function initialLang(): Lang {
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initialLang);
+  setFormatLang(lang);
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
   const setLang = (l: Lang) => {
     setLangState(l);
-    document.documentElement.lang = l;
     try {
       localStorage.setItem('lang', l);
     } catch {
@@ -60,7 +82,14 @@ export function LangProvider({ children }: { children: ReactNode }) {
     }
   };
   const t = (k: Key) => DICT[k][lang === 'en' ? 0 : 1];
-  return <LangContext.Provider value={{ lang, setLang, t }}>{children}</LangContext.Provider>;
+  const tx = (en: string | null | undefined) => (lang === 'ja' ? toJa(en) : en ?? '');
+  const L = (obj: Rec | null | undefined, key: string) => {
+    const en = (obj?.[key] as string | null | undefined) ?? '';
+    if (lang !== 'ja') return en;
+    const ja = obj?.[key + 'Ja'] as string | null | undefined;
+    return ja || toJa(en);
+  };
+  return <LangContext.Provider value={{ lang, setLang, t, tx, L }}>{children}</LangContext.Provider>;
 }
 
 export const useLang = () => useContext(LangContext);

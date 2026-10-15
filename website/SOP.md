@@ -86,6 +86,14 @@ Your name, programme and year of entry are set by the seminar office. Ask an adm
 
 ---
 
+## 5b. Languages (English / 日本語)
+
+- Visitors switch language with **English | 日本語** at the top right of every page (or open the site with `?lang=ja`).
+- Standard texts are already translated (first draft; have a Japanese speaker proofread them).
+- For anything you add, fill the boxes marked **(日本語)** in the Admin forms. An empty Japanese box falls back to the English text.
+
+---
+
 ## 6. Weekly checklist (Admin, about 10 minutes)
 
 - [ ] Dashboard: clear **Waiting for approval**.

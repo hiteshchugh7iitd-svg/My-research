@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import type { Post } from '../../lib/amplify';
 import { CATEGORY_LABELS, formatDate } from '../../lib/format';
-import { pick, useLang } from '../../lib/i18n';
+import { useLang } from '../../lib/i18n';
 import { useMembers } from '../../lib/members';
 import { useModel } from '../../lib/store';
 import { Img, Loading, Markdown, PageHeader, PhotoGrid } from '../../components/ui';
@@ -11,6 +11,7 @@ import { PostCard } from './Home';
 const PAGE = 12;
 
 export function News() {
+  const { tx, L } = useLang();
   const { items, loading } = useModel<Post>('Post');
   const [params, setParams] = useSearchParams();
   const category = params.get('category') ?? 'ALL';
@@ -46,7 +47,7 @@ export function News() {
 
   return (
     <>
-      <PageHeader eyebrow="News & Events" title={category === 'ALL' ? 'News & events' : CATEGORY_LABELS[category]} intro="Seminar news, events, fieldwork, internships and conference reports — many written by students themselves." />
+      <PageHeader eyebrow={tx('News & Events')} title={category === 'ALL' ? tx('News & events') : tx(CATEGORY_LABELS[category])} intro={tx('Seminar news, events, fieldwork, internships and conference reports — many written by students themselves.')} />
       <section className="section">
         <div className="container layout-side">
           <div>
@@ -70,32 +71,32 @@ export function News() {
                 )}
               </>
             ) : (
-              <div className="empty">No posts in this category yet.</div>
+              <div className="empty">{tx('No posts in this category yet.')}</div>
             )}
           </div>
           <aside className="sidebar">
             <div className="widget">
-              <h4>Categories</h4>
+              <h4>{tx('Categories')}</h4>
               <ul>
-                <li><a onClick={() => choose('ALL')} style={{ cursor: 'pointer', fontWeight: category === 'ALL' ? 700 : 400 }}>All ({published.length})</a></li>
+                <li><a onClick={() => choose('ALL')} style={{ cursor: 'pointer', fontWeight: category === 'ALL' ? 700 : 400 }}>{tx('All')} ({published.length})</a></li>
                 {Object.entries(CATEGORY_LABELS)
                   .filter(([k]) => counts[k])
                   .map(([k, label]) => (
                     <li key={k}>
                       <a onClick={() => choose(k)} style={{ cursor: 'pointer', fontWeight: category === k ? 700 : 400 }}>
-                        {label} ({counts[k]})
+                        {tx(label)} ({counts[k]})
                       </a>
                     </li>
                   ))}
               </ul>
             </div>
             <div className="widget">
-              <h4>Recent posts</h4>
-              <ul>{recent.map((p) => <li key={p.id}><Link to={`/news/${p.slug}`}>{p.title}</Link></li>)}</ul>
+              <h4>{tx('Recent posts')}</h4>
+              <ul>{recent.map((p) => <li key={p.id}><Link to={`/news/${p.slug}`}>{L(p, 'title')}</Link></li>)}</ul>
             </div>
             {archive.length > 0 && (
               <div className="widget">
-                <h4>Archives</h4>
+                <h4>{tx('Archives')}</h4>
                 <ul>
                   {archive.map(([k, n]) => (
                     <li key={k}>{formatDate(k + '-01', { year: 'numeric', month: 'long' })} <span className="muted">({n})</span></li>
@@ -112,7 +113,7 @@ export function News() {
 
 export function NewsDetail() {
   const { slug } = useParams();
-  const { lang } = useLang();
+  const { lang, tx, L } = useLang();
   const { items, loading } = useModel<Post>('Post');
   const { members } = useMembers();
   const post = items.find((p) => p.slug === slug && p.published);
@@ -120,8 +121,8 @@ export function NewsDetail() {
   if (!post)
     return (
       <section className="section container">
-        <h1>Post not found</h1>
-        <Link to="/news">Back to news</Link>
+        <h1>{tx('Post not found')}</h1>
+        <Link to="/news">{tx('Back to news')}</Link>
       </section>
     );
   const people = members.filter((m) => post.memberIds?.includes(m.id));
@@ -129,25 +130,25 @@ export function NewsDetail() {
   const more = items.filter((p) => p.published && p.id !== post.id && p.category === post.category).slice(0, 4);
   return (
     <>
-      <PageHeader crumbs={[{ to: '/news', label: 'News & Events' }]} eyebrow={post.category ? CATEGORY_LABELS[post.category] : undefined} title={pick(lang, post.title, post.titleJa)} />
+      <PageHeader crumbs={[{ to: '/news', label: tx('News & Events') }]} eyebrow={post.category ? tx(CATEGORY_LABELS[post.category]) : undefined} title={L(post, 'title')} />
       <section className="section">
         <div className="container layout-side">
           <article>
             <p className="muted small">
               {formatDate(post.publishDate)}
-              {post.eventDate && post.eventDate !== post.publishDate && <> · Event date {formatDate(post.eventDate)}</>}
-              {post.location && <> · {post.location}</>}
-              {post.authorName && <> · by {post.authorName}</>}
+              {post.eventDate && post.eventDate !== post.publishDate && <> · {tx('Event date')} {formatDate(post.eventDate)}</>}
+              {post.location && <> · {L(post, 'location')}</>}
+              {post.authorName && <> · {tx('by')} {post.authorName}</>}
             </p>
             {post.coverKey && (
               <div className="article-cover">
                 <Img k={post.coverKey} alt="" />
               </div>
             )}
-            <Markdown src={post.body || post.excerpt} />
+            <Markdown src={L(post, 'body') || L(post, 'excerpt')} />
             {photos.length > 0 && (
               <>
-                <h3 style={{ marginTop: 28 }}>Photos</h3>
+                <h3 style={{ marginTop: 28 }}>{tx('Photos')}</h3>
                 <PhotoGrid photos={photos} />
               </>
             )}
@@ -155,14 +156,14 @@ export function NewsDetail() {
           <aside className="sidebar">
             {people.length > 0 && (
               <div className="widget">
-                <h4>Seminar members</h4>
-                <ul>{people.map((m) => <li key={m.id}><Link to={`/members/${m.slug}`}>{m.name}</Link></li>)}</ul>
+                <h4>{tx('Seminar members')}</h4>
+                <ul>{people.map((m) => <li key={m.id}><Link to={`/members/${m.slug}`}>{m.nameJa && lang === 'ja' ? m.nameJa : m.name}</Link></li>)}</ul>
               </div>
             )}
             {more.length > 0 && (
               <div className="widget">
-                <h4>More {post.category ? CATEGORY_LABELS[post.category].toLowerCase() : 'news'}</h4>
-                <ul>{more.map((p) => <li key={p.id}><Link to={`/news/${p.slug}`}>{p.title}</Link></li>)}</ul>
+                <h4>{post.category ? tx(CATEGORY_LABELS[post.category]) : tx('News')}</h4>
+                <ul>{more.map((p) => <li key={p.id}><Link to={`/news/${p.slug}`}>{L(p, 'title')}</Link></li>)}</ul>
               </div>
             )}
           </aside>

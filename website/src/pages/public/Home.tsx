@@ -3,11 +3,15 @@ import { Link } from 'react-router-dom';
 import type { Member, Post, Project, Publication } from '../../lib/amplify';
 import { DEFAULTS } from '../../lib/defaults';
 import { CATEGORY_LABELS, formatDate } from '../../lib/format';
-import { pick, useLang } from '../../lib/i18n';
+import { useLang } from '../../lib/i18n';
 import { useContent, useModel } from '../../lib/store';
 import { Img } from '../../components/ui';
 
+/** First sentence of a text, in either language. */
+const firstSentence = (x: string) => (x.includes('。') ? x.split('。')[0] + '。' : x.split('. ')[0] + (x.includes('. ') ? '.' : ''));
+
 function Hero() {
+  const { tx, L } = useLang();
   const slides = useContent('heroSlides', DEFAULTS.heroSlides);
   const site = useContent('site', DEFAULTS.site);
   const sections = { ...DEFAULTS.homeSections, ...useContent('homeSections', DEFAULTS.homeSections) };
@@ -23,30 +27,30 @@ function Hero() {
     <section className="hero" aria-label="Seminar photographs">
       {slides.map((s, idx) => (
         <div key={s.image + idx} className={'hero-slide' + (idx === i % n ? ' active' : '')} aria-hidden={idx !== i % n}>
-          <Img k={s.image} alt={s.caption} />
+          <Img k={s.image} alt={L(s, 'caption')} />
         </div>
       ))}
       <div className="hero-shade" />
       <div className="hero-copy">
         <div className="container" style={{ width: '100%' }}>
           <div className="inner">
-            <div className="eyebrow">{site.tagline}</div>
-            <h1>{current?.headline || site.motto}</h1>
-            <p>{current?.text || site.intro}</p>
+            <div className="eyebrow">{L(site, 'tagline')}</div>
+            <h1>{L(current, 'headline') || L(site, 'motto')}</h1>
+            <p>{L(current, 'text') || L(site, 'intro')}</p>
             <div className="row" style={{ marginTop: 18 }}>
               {current?.link ? (
-                <Link className="btn accent" to={current.link}>Read more</Link>
+                <Link className="btn accent" to={current.link}>{tx('Read more')}</Link>
               ) : (
-                <Link className="btn accent" to={sections.ctaPrimaryLink}>{sections.ctaPrimaryLabel}</Link>
+                <Link className="btn accent" to={sections.ctaPrimaryLink}>{tx(sections.ctaPrimaryLabel)}</Link>
               )}
               {sections.ctaSecondaryLabel && (
-                <Link className="btn light" to={sections.ctaSecondaryLink}>{sections.ctaSecondaryLabel}</Link>
+                <Link className="btn light" to={sections.ctaSecondaryLink}>{tx(sections.ctaSecondaryLabel)}</Link>
               )}
             </div>
           </div>
         </div>
       </div>
-      {current?.caption && <div className="hero-caption">{current.caption}</div>}
+      {current?.caption && <div className="hero-caption">{L(current, 'caption')}</div>}
       {n > 1 && (
         <div className="hero-controls">
           <button onClick={() => setI((x) => (x - 1 + n) % n)} aria-label="Previous photo">‹</button>
@@ -63,7 +67,7 @@ function Hero() {
 }
 
 export function PostCard({ post }: { post: Post }) {
-  const { lang } = useLang();
+  const { tx, L } = useLang();
   return (
     <article className="card linky">
       <Link to={`/news/${post.slug}`} className="thumb" tabIndex={-1} aria-hidden>
@@ -71,20 +75,20 @@ export function PostCard({ post }: { post: Post }) {
       </Link>
       <div className="body">
         <div className="row" style={{ gap: 8 }}>
-          {post.category && <span className="tag">{CATEGORY_LABELS[post.category]}</span>}
+          {post.category && <span className="tag">{tx(CATEGORY_LABELS[post.category])}</span>}
           <span className="meta">{formatDate(post.eventDate ?? post.publishDate)}</span>
         </div>
         <h3>
-          <Link to={`/news/${post.slug}`}>{pick(lang, post.title, post.titleJa)}</Link>
+          <Link to={`/news/${post.slug}`}>{L(post, 'title')}</Link>
         </h3>
-        {post.excerpt && <p className="excerpt">{post.excerpt}</p>}
+        {post.excerpt && <p className="excerpt">{L(post, 'excerpt')}</p>}
       </div>
     </article>
   );
 }
 
 export default function Home() {
-  const { t } = useLang();
+  const { t, tx, L } = useLang();
   const site = useContent('site', DEFAULTS.site);
   const sections = { ...DEFAULTS.homeSections, ...useContent('homeSections', DEFAULTS.homeSections) };
   const tiles = useContent('homeTiles', DEFAULTS.homeTiles);
@@ -115,7 +119,7 @@ export default function Home() {
               {tiles.map((tile) => (
                 <Link key={tile.label + tile.link} className="tile" to={tile.link}>
                   <Img k={tile.image} alt="" />
-                  <span>{tile.label}</span>
+                  <span>{L(tile, 'label')}</span>
                 </Link>
               ))}
             </div>
@@ -126,7 +130,7 @@ export default function Home() {
       {sections.showMotto && (
         <section className="section tight">
           <div className="container">
-            <p className="motto">{site.motto}</p>
+            <p className="motto">{L(site, 'motto')}</p>
           </div>
         </section>
       )}
@@ -134,7 +138,7 @@ export default function Home() {
       {sections.showNews && (
       <section className="section" style={{ paddingTop: 20 }}>
         <div className="container">
-          <h2 className="rule-title">{sections.newsHeading || t('recentNews')}</h2>
+          <h2 className="rule-title">{tx(sections.newsHeading) || t('recentNews')}</h2>
           {loading ? (
             <div className="loading">
               <span className="spinner" />
@@ -146,7 +150,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="empty">News and student reports will appear here once they are published from the admin console.</div>
+            <div className="empty">{tx('News and student reports will appear here once they are published from the admin console.')}</div>
           )}
           <div style={{ textAlign: 'center', marginTop: 26 }}>
             <Link className="btn secondary" to="/news">
@@ -161,33 +165,33 @@ export default function Home() {
       <section className="section alt">
         <div className="container layout-side">
           <div>
-            <div className="eyebrow">The seminar</div>
-            <h2>{sections.aboutHeading}</h2>
-            {prof.message.split(/\n\s*\n/).map((p, i) => (
+            <div className="eyebrow">{tx('The seminar')}</div>
+            <h2>{tx(sections.aboutHeading)}</h2>
+            {L(prof, 'message').split(/\n\s*\n/).map((p, i) => (
               <p key={i}>{p}</p>
             ))}
             <div className="grid c2" style={{ marginTop: 24, gap: 14 }}>
               {themes.map((th) => (
                 <div key={th.num} className="card pad" style={{ padding: 18 }}>
                   <div className="eyebrow" style={{ marginBottom: 4 }}>{th.num}</div>
-                  <h3 style={{ fontSize: '1.02rem' }}>{th.title}</h3>
-                  <p className="small muted" style={{ margin: 0 }}>{th.body.split('. ')[0]}.</p>
+                  <h3 style={{ fontSize: '1.02rem' }}>{L(th, 'title')}</h3>
+                  <p className="small muted" style={{ margin: 0 }}>{firstSentence(L(th, 'body'))}</p>
                 </div>
               ))}
             </div>
           </div>
           <aside className="sidebar">
             <div className="widget">
-              <h4>At a glance</h4>
+              <h4>{tx('At a glance')}</h4>
               <div className="stats" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                <div className="stat"><b>{pubs.filter((p) => p.kind === 'PAPER').length || '—'}</b><span>Papers</span></div>
-                <div className="stat"><b>{pubs.filter((p) => p.kind === 'TALK').length || '—'}</b><span>Talks</span></div>
-                <div className="stat"><b>{projects.length || '—'}</b><span>Funded projects</span></div>
-                <div className="stat"><b>{members.filter((m) => m.visible !== false && m.status === 'CURRENT').length || '—'}</b><span>Students</span></div>
+                <div className="stat"><b>{pubs.filter((p) => p.kind === 'PAPER').length || '—'}</b><span>{tx('Papers')}</span></div>
+                <div className="stat"><b>{pubs.filter((p) => p.kind === 'TALK').length || '—'}</b><span>{tx('Talks')}</span></div>
+                <div className="stat"><b>{projects.length || '—'}</b><span>{tx('Funded projects')}</span></div>
+                <div className="stat"><b>{members.filter((m) => m.visible !== false && m.status === 'CURRENT').length || '—'}</b><span>{tx('Students')}</span></div>
               </div>
             </div>
             <div className="widget">
-              <h4>Recent papers</h4>
+              <h4>{tx('Recent papers')}</h4>
               <ul>
                 {featured.map((p) => (
                   <li key={p.id}>
@@ -196,7 +200,7 @@ export default function Home() {
                 ))}
               </ul>
               <p className="small" style={{ marginTop: 10 }}>
-                <Link to="/publications">All publications →</Link>
+                <Link to="/publications">{tx('All publications →')}</Link>
               </p>
             </div>
           </aside>

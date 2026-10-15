@@ -59,6 +59,9 @@ const schema = a.schema({
       cvKey: a.string(),
       thesisTitle: a.string(),
       currentPosition: a.string(),
+      thesisTitleJa: a.string(),
+      currentPositionJa: a.string(),
+      countryJa: a.string(),
       contactEmail: a.email(),
       /** [{ label, url }] — ORCID, researchmap, LinkedIn, Google Scholar … */
       links: a.json(),
@@ -82,6 +85,9 @@ const schema = a.schema({
       category: a.ref('PostCategory'),
       excerpt: a.string(),
       body: a.string(),
+      excerptJa: a.string(),
+      bodyJa: a.string(),
+      locationJa: a.string(),
       coverKey: a.string(),
       imageKeys: a.string().array(),
       eventDate: a.date(),
@@ -134,6 +140,7 @@ const schema = a.schema({
       period: a.string(),
       host: a.string(),
       summary: a.string(),
+      summaryJa: a.string(),
       coverKey: a.string(),
       ongoing: a.boolean().default(true),
       sortOrder: a.integer().default(100),
@@ -148,7 +155,10 @@ const schema = a.schema({
   Award: a
     .model({
       title: a.string().required(),
+      titleJa: a.string(),
       body: a.string(),
+      bodyJa: a.string(),
+      noteJa: a.string(),
       date: a.string(),
       year: a.integer(),
       note: a.string(),
@@ -166,10 +176,12 @@ const schema = a.schema({
     .model({
       slug: a.string().required(),
       title: a.string().required(),
+      titleJa: a.string(),
       academicYear: a.integer(),
       category: a.string(),
       date: a.date(),
       description: a.string(),
+      descriptionJa: a.string(),
       coverKey: a.string(),
       /** [{ key, caption }] in display order. */
       photos: a.json(),
@@ -187,8 +199,11 @@ const schema = a.schema({
   Guest: a
     .model({
       name: a.string().required(),
+      nameJa: a.string(),
       position: a.string(),
+      positionJa: a.string(),
       affiliation: a.string(),
+      affiliationJa: a.string(),
       country: a.string(),
       visitDate: a.date(),
       note: a.string(),

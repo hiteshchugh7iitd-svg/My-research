@@ -1,3 +1,9 @@
+let formatLang: 'en' | 'ja' = 'en';
+/** Set by the language provider so dates and labels follow the selected language. */
+export const setFormatLang = (l: 'en' | 'ja') => {
+  formatLang = l;
+};
+
 export const PROGRAM_LABELS: Record<string, string> = {
   PHD: 'Doctoral (PhD)',
   MASTERS: "Master's",
@@ -51,7 +57,7 @@ export function uniqueSlug(slug: string, taken: Iterable<string>): string {
 export function formatDate(iso?: string | null, opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' }): string {
   if (!iso) return '';
   const d = new Date(iso.length === 10 ? iso + 'T00:00:00' : iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-GB', opts);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(formatLang === 'ja' ? 'ja-JP' : 'en-GB', opts);
 }
 
 export const today = () => new Date().toISOString().slice(0, 10);

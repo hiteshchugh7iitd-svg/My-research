@@ -2,10 +2,12 @@ import { Link, useSearchParams } from 'react-router-dom';
 import type { Album, Post, Publication } from '../../lib/amplify';
 import { normalize } from '../../lib/format';
 import { useMembers } from '../../lib/members';
+import { useLang } from '../../lib/i18n';
 import { useModel } from '../../lib/store';
 import { PageHeader } from '../../components/ui';
 
 export default function Search() {
+  const { tx } = useLang();
   const [params] = useSearchParams();
   const q = params.get('q') ?? '';
   const nq = normalize(q);
@@ -24,14 +26,14 @@ export default function Search() {
 
   return (
     <>
-      <PageHeader eyebrow="Search" title={`Results for “${q}”`} />
+      <PageHeader eyebrow={tx('Search')} title={`${tx('Results for')} “${q}”`} />
       <section className="section">
         <div className="container">
-          <p className="muted">{results.length} results</p>
+          <p className="muted">{results.length} {tx('results')}</p>
           <ul className="pub-list">
             {results.slice(0, 200).map((r, i) => (
               <li key={i} className="pub">
-                <div><span className="tag grey">{r.type}</span></div>
+                <div><span className="tag grey">{tx(r.type)}</span></div>
                 <div>
                   <Link className="t" to={r.to}>{r.title}</Link>
                   {r.sub && <div className="n">{r.sub}</div>}
