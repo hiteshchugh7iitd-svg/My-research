@@ -20,6 +20,7 @@ import Visitors from './pages/public/Visitors';
 import Teaching from './pages/public/Teaching';
 import Contact from './pages/public/Contact';
 import Search from './pages/public/Search';
+import { Advocacy, Media, Outreach, Thesis } from './pages/public/Sections';
 
 // Sign-in, the members area and the admin console load only when opened,
 // so visitors to the public pages download much less.
@@ -129,6 +130,10 @@ export default function App() {
                 <Route path="visitors" element={<Visitors />} />
                 <Route path="teaching" element={<Teaching />} />
                 <Route path="contact" element={<Contact />} />
+                <Route path="advocacy" element={<Advocacy />} />
+                <Route path="thesis" element={<Thesis />} />
+                <Route path="media" element={<Media />} />
+                <Route path="outreach" element={<Outreach />} />
                 <Route path="search" element={<Search />} />
                 <Route path="login" element={<Login />} />
                 <Route path="portal" element={<RequireAuth><Portal /></RequireAuth>} />

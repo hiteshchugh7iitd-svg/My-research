@@ -35,7 +35,7 @@ export default function Research() {
         </div>
       </section>
 
-      <section className="section alt">
+      <section className="section alt" id="fields">
         <div className="container">
           <div className="section-head">
             <h2>{tx('Where we work')}</h2>

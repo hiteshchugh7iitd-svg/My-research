@@ -1,5 +1,22 @@
 import starter from '../seed/starter.json';
 
+/** Latest dated talks and papers, used as the first “What’s New” items until staff write their own. */
+function initialWhatsNew() {
+  const MONTH: Record<string, string> = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
+  const talks = starter.publications
+    .filter((p) => p.kind === 'TALK' && /\d{1,2} \w{3} \d{4}/.test(p.date))
+    .slice(0, 3)
+    .map((p) => {
+      const [d, m, y] = p.date.split(' ');
+      return { date: `${y}-${MONTH[m] ?? '01'}-${d.padStart(2, '0')}`, text: `${p.invited ? 'Invited talk' : 'Talk'}: “${p.title}” — ${p.venue}`, link: '/publications?kind=TALK' };
+    });
+  const papers = starter.publications
+    .filter((p) => p.kind === 'PAPER' && p.year === 2026)
+    .slice(0, 2)
+    .map((p) => ({ date: '2026-01-01', text: `New paper: “${p.title}” — ${p.venue}`, link: '/publications?kind=PAPER' }));
+  return [...talks, ...papers];
+}
+
 /**
  * Default text for every editable block. The site shows these until the block
  * is edited in Admin → Site content; "Import starter content" saves them to the
@@ -34,6 +51,10 @@ export const DEFAULTS = {
     { label: 'Alumni', image: '/images/seminar-gsics.jpg', link: '/alumni' },
   ] as Tile[],
   homeSections: {
+    showPillars: true,
+    showWhatsNew: true,
+    showPartners: true,
+    showFields: true,
     showTiles: true,
     showMotto: true,
     showNews: true,
@@ -45,6 +66,16 @@ export const DEFAULTS = {
     ctaPrimaryLink: '/teaching',
     ctaSecondaryLabel: 'Research themes',
     ctaSecondaryLink: '/research',
+    showPortrait: true,
+    showProfileButtons: true,
+    profileButtonCount: 4,
+    researchText: 'Disaster risk reduction education, school safety and recovery in Japan and across Asia, from policy design to classroom practice.',
+    educationText: 'Courses, thesis supervision and seminar life at the Graduate School of International Cooperation Studies, Kobe University.',
+    outreachText: 'Social contribution through committees, training, media and exchanges with partners and visiting researchers.',
+    whatsNewHeading: "What's New",
+    whatsNewCount: 6,
+    partnersHeading: 'Partners',
+    fieldsHeading: 'Fields',
   },
   professor: {
     name: 'Aiko Sakurai',
@@ -81,6 +112,44 @@ export const DEFAULTS = {
   profileLinks: starter.content.profileLinks as Link[],
   partnerLinks: starter.content.partnerLinks as Link[],
   resources: starter.content.resources as { title: string; body: string }[],
+
+  /** Short dated one-line updates shown on the home page. */
+  whatsNew: initialWhatsNew() as { date: string; text: string; link?: string }[],
+  /** Partner organisations shown as a logo row on the home page. */
+  partners: (starter.content.partnerLinks as Link[]).filter((l) => !/instagram|linkedin/i.test(l.label)).map((l) => ({ name: l.label, logo: '', url: l.url })) as { name: string; logo: string; url: string }[],
+  /** Country photo strip (“Fields”) at the bottom of the home page. */
+  fieldStrip: (starter.content.fieldSites as { place: string }[]).map((f) => ({ country: f.place, image: '', link: '/research#fields' })) as { country: string; image: string; link: string }[],
+  /** Book cover gallery shown on the Publications page. */
+  bookCovers: [] as { title: string; image: string; link: string }[],
+  /** Policy advocacy and advisory work. */
+  policyAdvocacy: [] as { title: string; body: string; period: string; image: string; link: string }[],
+  /** Headline numbers on the Thesis supervision page. */
+  thesisStats: [] as { label: string; value: string }[],
+  /** Theses supervised, one row per thesis. */
+  theses: [] as { university: string; level: string; year: string; name: string; country: string; title: string }[],
+  /** Newspaper, TV and web coverage. */
+  mediaCoverage: [] as { date: string; outlet: string; title: string; link: string; image: string }[],
+  /** Committees, society memberships, editorial boards, advisory roles. */
+  outreachMemberships: [] as { text: string; period: string }[],
+  /** Social contribution stories with an optional photo. */
+  outreachStories: [] as { title: string; body: string; image: string }[],
+  /** Optional overrides for the title and introduction at the top of each page. */
+  pageText: [
+    ['/professor', 'Prof. Sakurai'],
+    ['/research', 'Research themes and projects'],
+    ['/publications', 'Publications'],
+    ['/advocacy', 'Policy advocacy'],
+    ['/teaching', 'Courses'],
+    ['/thesis', 'Thesis supervision'],
+    ['/members', 'Students'],
+    ['/alumni', 'Alumni'],
+    ['/outreach', 'Outreach activities'],
+    ['/media', 'Media coverage'],
+    ['/visitors', 'Visitors'],
+    ['/gallery', 'Gallery'],
+    ['/news', 'News & events'],
+    ['/contact', 'Contact'],
+  ].map(([path, page]) => ({ page, path, title: '', intro: '' })) as { page: string; path: string; title: string; intro: string }[],
 };
 
 export type ContentId = keyof typeof DEFAULTS;

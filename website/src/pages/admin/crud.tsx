@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { listAll, parseJson, userClient, unwrap, type ModelName } from '../../lib/amplify';
+import { hasField, listAll, parseJson, userClient, unwrap, type ModelName } from '../../lib/amplify';
 import { changed } from '../../lib/audit';
 import { normalize } from '../../lib/format';
 import { useMembers } from '../../lib/members';
@@ -179,6 +179,7 @@ export function Drawer({ title, onClose, children, footer }: { title: ReactNode;
 export function CrudManager({ config }: { config: CrudConfig }) {
   const toast = useToast();
   const { items, loading, error, reload } = useLiveModel<any>(config.model);
+  const fields = useMemo(() => config.fields.filter((f) => hasField(config.model, f.name)), [config]);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState(-1);
   const [editing, setEditing] = useState<{ item?: any; form: Record<string, any>; loadedAt?: string } | null>(null);
@@ -191,17 +192,17 @@ export function CrudManager({ config }: { config: CrudConfig }) {
     return config.sort ? [...list].sort(config.sort) : list;
   }, [items, q, filter, config]);
 
-  const open = (item?: any) => setEditing({ item, form: toForm(config.fields, item ?? config.defaults()), loadedAt: item?.updatedAt });
+  const open = (item?: any) => setEditing({ item, form: toForm(fields, item ?? config.defaults()), loadedAt: item?.updatedAt });
   const set = (name: string, v: any) => setEditing((e) => (e ? { ...e, form: { ...e.form, [name]: v } } : e));
   const model = (userClient.models as any)[config.model];
 
   const save = async () => {
     if (!editing) return;
-    const missing = config.fields.filter((f) => f.required && (editing.form[f.name] === '' || editing.form[f.name] == null));
+    const missing = fields.filter((f) => f.required && (editing.form[f.name] === '' || editing.form[f.name] == null));
     if (missing.length) return toast(`Please fill in: ${missing.map((m) => m.label).join(', ')}`, true);
     setSaving(true);
     try {
-      let input = toInput(config.fields, editing.form);
+      let input = toInput(fields, editing.form);
       if (config.beforeSave) input = config.beforeSave(input, items, editing.item);
       if (editing.item) {
         const latest = unwrap<any>(await model.get({ id: editing.item.id }));
@@ -319,7 +320,7 @@ export function CrudManager({ config }: { config: CrudConfig }) {
             </>
           }
         >
-          <FormFields fields={config.fields} form={editing.form} set={set} />
+          <FormFields fields={fields} form={editing.form} set={set} />
         </Drawer>
       )}
     </>

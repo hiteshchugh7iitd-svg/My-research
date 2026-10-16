@@ -57,8 +57,10 @@ Go to **My page** and click **Sign out**, or in the Admin menu click **Sign out*
 
 | What | Where | Notes |
 |---|---|---|
-| Cover photos, headlines, motto, announcement banner | Admin → **Cover page & site text** → Home page | Each slide can have its own headline, text and link. **Save** publishes immediately. |
-| Prof. Sakurai profile, contact details, career, courses, links | Cover page & site text → Pages / Profile lists / Research & teaching | **Restore default** undoes your edits to that block. |
+| Cover photos, headlines, motto, banner, What's New, partner logos, Fields strip | Admin → **Site content (all pages)** → Home page & cover | Each slide can have its own headline, text and link. **Save** publishes immediately. |
+| Prof. Sakurai profile, contact details, career, courses, profile buttons | Site content (all pages) → Profile & contact / Career & profile links / Research & teaching text | **Restore default** undoes your edits to that block. |
+| Policy advocacy, book covers, thesis supervision, media coverage, outreach | Site content (all pages) → the matching link | These pages show in the menu once they have one entry. Long lists: **Download CSV** → edit in Excel → **Import CSV** → **Save**. |
+| Title and introduction of any page | Site content (all pages) → **Page titles & intros** | Empty boxes keep the built-in text. |
 | News, events, activity reports | Admin → **News & events** → **+ Add post** | Untick **Published** to keep a post as a draft. **Pin** keeps it at the top. |
 | Gallery album | Admin → **Gallery** → **+ Add album**, then drop the photos in | Albums are grouped by academic year (AY 2025 = April 2025 to March 2026). |
 | Many photos at once / student portraits | Admin → **Upload center** | Open several upload tabs; they run in parallel. Portraits are matched to students by file name; check the matches, then click **Apply**. |
@@ -76,7 +78,7 @@ Go to **My page** and click **Sign out**, or in the Admin menu click **Sign out*
 ## 5. Student guide
 
 1. Sign in and go to **My page** → **My profile**.
-2. Upload your photo (a portrait is best), your CV (PDF), your research topic and a short biography. Japanese fields are optional.
+2. Optionally upload a photo (a portrait is best; without one your initials are shown), your CV (PDF), your research topic and a short biography. Japanese fields are optional.
 3. Click **Save profile**. Your page updates immediately; check it with **View my page**.
 4. To report an internship, fieldwork, a conference or an award, use **Submit news / report**. Add a title, date, text and photos, then send it.
 5. To add a paper or talk, use **Submit publication**.
@@ -93,6 +95,16 @@ Your name, programme and year of entry are set by the seminar office. Ask an adm
 - For anything you add, fill the boxes marked **(日本語)** in the Admin forms. An empty Japanese box falls back to the English text.
 
 ---
+
+## 5c. Updating the website files yourself (manual upload)
+
+Use this when the site maintainer sends a new website package (`sakurai-website-upload.zip`).
+Content in the admin console is **not** affected.
+
+1. Sign in to the AWS console and set the region (top right) to **Asia Pacific (Tokyo)**.
+2. Open **AWS Amplify** → app **Sakurai-Seminar-Website** → branch **main**.
+3. Click **Deploy updates**, choose **Drag and drop**, drop the zip file (do not unzip it), then click **Save and deploy**.
+4. Wait until the status shows **Deployed** (about one minute), then open the website and press Ctrl+F5.
 
 ## 6. Weekly checklist (Admin, about 10 minutes)
 

@@ -83,7 +83,13 @@ GitHub (this repo) ──push──▶ AWS Amplify Hosting ──builds──▶
 This app was deployed directly through the AWS APIs, without the GitHub connection, so pushing
 to GitHub does **not** redeploy it. Content changes made in the admin console go live
 immediately and never need a redeploy. To deploy a *code* change, either repeat the direct
-deployment, or create a GitHub-connected Amplify app as described below. That app gets its own
+deployment, or create a GitHub-connected Amplify app as described below.
+
+**Frontend-only updates by hand:** build with the live `amplify_outputs.json`
+(`npx vite build`), zip the *contents* of `dist/`, and in the Amplify console choose
+**Deploy updates → Drag and drop**. The frontend checks the deployed schema
+(`hasField` in `src/lib/amplify.ts`), so form boxes for fields the backend does not have yet are
+hidden and never break saving. That app gets its own
 new backend, so export a backup first and import it there.
 
 ## First deployment (about 20 minutes)

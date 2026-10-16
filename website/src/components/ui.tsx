@@ -1,5 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { parseJson } from '../lib/amplify';
+import { useAuth } from '../lib/auth';
+import { DEFAULTS } from '../lib/defaults';
+import { useLang } from '../lib/i18n';
+import { locate, type NavChild, type Pillar } from '../lib/sitemap';
+import { useContent, useModel } from '../lib/store';
 import { useFileUrl } from '../lib/files';
 import { initials } from '../lib/format';
 import { renderMarkdown } from '../lib/markdown';
@@ -51,23 +57,59 @@ export function Paragraphs({ text }: { text?: string | null }) {
   );
 }
 
+/** The pages of a pillar that visitors should see (pages whose content is still empty are hidden from visitors). */
+export function useVisibleChildren(pillar?: Pillar): NavChild[] {
+  const auth = useAuth();
+  const { items } = useModel<{ id: string; data: unknown }>('SiteContent');
+  if (!pillar) return [];
+  const filled = (id: string) => {
+    const block = items.find((b) => b.id === id);
+    const v = block ? parseJson<unknown>(block.data, null) : (DEFAULTS as Record<string, unknown>)[id];
+    return Array.isArray(v) ? v.length > 0 : !!v;
+  };
+  return pillar.children.filter((c) => auth.isStaff || !c.needs || c.needs.some(filled));
+}
+
+/**
+ * Coloured band at the top of every page: breadcrumb, title, introduction and the
+ * tabs of the current section (Research / Education / Outreach). Staff can replace the
+ * title and introduction of any page in Admin → Site content → Page titles & intros.
+ */
 export function PageHeader({ title, intro, eyebrow, crumbs }: { title: ReactNode; intro?: ReactNode; eyebrow?: string; crumbs?: { to: string; label: string }[] }) {
+  const { pathname } = useLocation();
+  const { t, tx, L } = useLang();
+  const pages = useContent('pageText', DEFAULTS.pageText);
+  const override = pages.find((p) => p.path === pathname);
+  const { pillar, child } = locate(pathname);
+  const siblings = useVisibleChildren(pillar);
+  const trail = crumbs ?? (pillar ? [{ to: siblings[0]?.to ?? '/', label: tx(pillar.label) }] : []);
   return (
     <header className="page-header">
       <div className="container">
-        {crumbs && (
-          <div className="crumbs">
-            {crumbs.map((c) => (
-              <span key={c.to}>
-                <Link to={c.to}>{c.label}</Link> ›{' '}
-              </span>
+        <div className="crumbs">
+          <Link to="/">{t('home')}</Link> ›{' '}
+          {trail.map((c) => (
+            <span key={c.to + c.label}>
+              <Link to={c.to}>{c.label}</Link> ›{' '}
+            </span>
+          ))}
+          {child && !crumbs && pathname === child.to && <span>{tx(child.label)}</span>}
+        </div>
+        {eyebrow && <div className="eyebrow">{eyebrow}</div>}
+        <h1>{override?.title ? L(override, 'title') : title}</h1>
+        {(override?.intro || intro) && <p>{override?.intro ? L(override, 'intro') : intro}</p>}
+      </div>
+      {siblings.length > 1 && (
+        <nav className="subnav" aria-label={tx(pillar!.label)}>
+          <div className="container">
+            {siblings.map((c) => (
+              <NavLink key={c.to} to={c.to} className={({ isActive }) => (isActive || pathname.startsWith(c.to + '/') ? 'active' : '')}>
+                {tx(c.label)}
+              </NavLink>
             ))}
           </div>
-        )}
-        {eyebrow && <div className="eyebrow">{eyebrow}</div>}
-        <h1>{title}</h1>
-        {intro && <p>{intro}</p>}
-      </div>
+        </nav>
+      )}
     </header>
   );
 }

@@ -6,20 +6,31 @@ import { DEFAULTS } from '../lib/defaults';
 import { useLang } from '../lib/i18n';
 import { useContent, useModel } from '../lib/store';
 import type { Post } from '../lib/amplify';
-import { BrandMark } from './ui';
+import { PILLARS, locate, type Pillar } from '../lib/sitemap';
+import { BrandMark, useVisibleChildren } from './ui';
 
-const NAV = [
-  { to: '/', key: 'home', end: true },
-  { to: '/professor', key: 'professor' },
-  { to: '/research', key: 'research' },
-  { to: '/publications', key: 'publications' },
-  { to: '/members', key: 'members' },
-  { to: '/alumni', key: 'alumni' },
-  { to: '/news', key: 'news' },
-  { to: '/gallery', key: 'gallery' },
-  { to: '/visitors', key: 'visitors' },
-  { to: '/contact', key: 'contact' },
-] as const;
+/** Top menu: two plain links, the three section menus, then News and Contact. */
+function PillarMenu({ pillar }: { pillar: Pillar }) {
+  const { tx } = useLang();
+  const { pathname } = useLocation();
+  const children = useVisibleChildren(pillar);
+  if (!children.length) return null;
+  const active = locate(pathname).pillar === pillar;
+  return (
+    <li className="has-menu">
+      <Link to={children[0].to} className={active ? 'active' : ''} aria-haspopup="true">
+        {tx(pillar.label)} <span aria-hidden>▾</span>
+      </Link>
+      <ul className="submenu">
+        {children.map((c) => (
+          <li key={c.to}>
+            <NavLink to={c.to}>{tx(c.label)}</NavLink>
+          </li>
+        ))}
+      </ul>
+    </li>
+  );
+}
 
 /** Counts one visit per browser session and returns the all-time total. */
 function useVisitCount(): number | undefined {
@@ -131,13 +142,13 @@ export default function Layout() {
             {tx('☰ Menu')}
           </button>
           <ul className={menuOpen ? 'open' : ''}>
-            {NAV.map((n) => (
-              <li key={n.to}>
-                <NavLink to={n.to} end={'end' in n} className={({ isActive }) => (isActive ? 'active' : '')}>
-                  {t(n.key)}
-                </NavLink>
-              </li>
+            <li><NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>{t('home')}</NavLink></li>
+            <li><NavLink to="/professor" className={({ isActive }) => (isActive ? 'active' : '')}>{t('professor')}</NavLink></li>
+            {PILLARS.map((p) => (
+              <PillarMenu key={p.key} pillar={p} />
             ))}
+            <li><NavLink to="/news" className={({ isActive }) => (isActive ? 'active' : '')}>{t('news')}</NavLink></li>
+            <li><NavLink to="/contact" className={({ isActive }) => (isActive ? 'active' : '')}>{t('contact')}</NavLink></li>
           </ul>
           <div className="account">
             {auth.signedIn ? (

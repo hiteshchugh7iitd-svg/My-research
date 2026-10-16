@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { parseJson, userClient, unwrap, type SiteContent } from '../../lib/amplify';
 import { changed } from '../../lib/audit';
 import { DEFAULTS, type ContentId } from '../../lib/defaults';
+import { download, parseCsv, toCsv } from '../../lib/csv';
 import { toJa } from '../../lib/ja';
 import { Field, FileField } from '../../components/fields';
 import { Loading, useToast } from '../../components/ui';
@@ -51,6 +53,16 @@ const RAW_BLOCKS: Block[] = [
     id: 'homeSections', group: 'Home page', title: 'Sections & buttons', kind: 'object',
     help: 'Show or hide parts of the home page, rename section headings and set the cover buttons.',
     fields: [
+      { name: 'showPortrait', label: 'Show Prof. Sakurai’s portrait on the cover (set the photo under Pages → Prof. Sakurai profile)', type: 'checkbox' },
+      { name: 'showProfileButtons', label: 'Show researchmap / ORCID / ResearchGate buttons on the cover (from Profile lists → Profile links)', type: 'checkbox' },
+      { name: 'profileButtonCount', label: 'Number of profile buttons on the cover', type: 'number' },
+      { name: 'showPillars', label: 'Show Research / Education / Outreach blocks', type: 'checkbox' },
+      { name: 'researchText', label: 'Research block text', type: 'textarea' },
+      { name: 'educationText', label: 'Education block text', type: 'textarea' },
+      { name: 'outreachText', label: 'Outreach block text', type: 'textarea' },
+      { name: 'showWhatsNew', label: 'Show “What’s New”', type: 'checkbox' },
+      { name: 'whatsNewHeading', label: '“What’s New” heading' },
+      { name: 'whatsNewCount', label: 'Number of “What’s New” lines', type: 'number' },
       { name: 'showTiles', label: 'Show feature tiles', type: 'checkbox' },
       { name: 'showMotto', label: 'Show motto line', type: 'checkbox' },
       { name: 'showNews', label: 'Show recent news', type: 'checkbox' },
@@ -62,7 +74,33 @@ const RAW_BLOCKS: Block[] = [
       { name: 'ctaPrimaryLink', label: 'Main cover button link' },
       { name: 'ctaSecondaryLabel', label: 'Second cover button label (empty to hide)' },
       { name: 'ctaSecondaryLink', label: 'Second cover button link' },
+      { name: 'showPartners', label: 'Show partner logos', type: 'checkbox' },
+      { name: 'partnersHeading', label: 'Partners heading' },
+      { name: 'showFields', label: 'Show “Fields” photo strip', type: 'checkbox' },
+      { name: 'fieldsHeading', label: '“Fields” heading' },
     ],
+  },
+  {
+    id: 'whatsNew', group: 'Home page', title: 'What’s New', kind: 'list',
+    help: 'Short dated one-line updates (new paper, talk, award, visit). The newest dates are shown first.',
+    fields: [
+      { name: 'date', label: 'Date (YYYY-MM-DD)' },
+      { name: 'text', label: 'Text', type: 'textarea' },
+      { name: 'link', label: 'Link (optional, e.g. /news/my-post or https://…)' },
+    ],
+    itemLabel: (r) => `${r.date} · ${String(r.text ?? '').slice(0, 70)}`,
+  },
+  {
+    id: 'partners', group: 'Home page', title: 'Partner logos', kind: 'list',
+    help: 'Logo row near the bottom of the home page. Without a logo the name is shown in a box.',
+    fields: [{ name: 'name', label: 'Organisation name' }, { name: 'logo', label: 'Logo (optional)', type: 'image' }, { name: 'url', label: 'Website' }],
+    itemLabel: (r) => r.name || 'Partner',
+  },
+  {
+    id: 'fieldStrip', group: 'Home page', title: '“Fields” photo strip', kind: 'list',
+    help: 'One photo per country at the bottom of the home page.',
+    fields: [{ name: 'country', label: 'Country / place' }, { name: 'image', label: 'Photo (optional)', type: 'image' }, { name: 'link', label: 'Link (default: /research#fields)' }],
+    itemLabel: (r) => r.country || 'Field',
   },
   {
     id: 'professor', group: 'Pages', title: 'Prof. Sakurai profile', kind: 'object',
@@ -100,10 +138,58 @@ const RAW_BLOCKS: Block[] = [
   { id: 'seminarLife', group: 'Research & teaching', title: 'Seminar life', kind: 'list', help: 'Teaching page.', fields: [{ name: 'title', label: 'Title' }, { name: 'body', label: 'Text', type: 'textarea' }], itemLabel: (r) => r.title },
   { id: 'joinPoints', group: 'Research & teaching', title: 'Why join', kind: 'list', help: 'Teaching page.', fields: [{ name: 'title', label: 'Title' }, { name: 'body', label: 'Text', type: 'textarea' }], itemLabel: (r) => r.title },
   { id: 'partnerLinks', group: 'Research & teaching', title: 'Partner links', kind: 'list', help: 'Contact page.', fields: [{ name: 'label', label: 'Label' }, { name: 'url', label: 'URL' }], itemLabel: (r) => r.label },
+  {
+    id: 'policyAdvocacy', group: 'Research pages', title: 'Policy advocacy', kind: 'list',
+    help: 'Research → Policy advocacy page: advisory work for governments, UNESCO, UNICEF and others. The page appears in the menu once it has at least one entry.',
+    fields: [{ name: 'title', label: 'Title' }, { name: 'period', label: 'Period / year' }, { name: 'body', label: 'Description', type: 'textarea' }, { name: 'image', label: 'Photo (optional)', type: 'image' }, { name: 'link', label: 'Link (optional)' }],
+    itemLabel: (r) => r.title || 'Entry',
+  },
+  {
+    id: 'bookCovers', group: 'Research pages', title: 'Book covers', kind: 'list',
+    help: 'Cover gallery at the top of the Publications page (All and Books tabs).',
+    fields: [{ name: 'title', label: 'Book title' }, { name: 'image', label: 'Cover image', type: 'image' }, { name: 'link', label: 'Link to the publisher (optional)' }],
+    itemLabel: (r) => r.title || 'Book',
+  },
+  {
+    id: 'thesisStats', group: 'Education pages', title: 'Thesis supervision — headline numbers', kind: 'list',
+    help: 'Boxes at the top of Education → Thesis supervision, e.g. “PhD theses supervised — 5”.',
+    fields: [{ name: 'label', label: 'Label' }, { name: 'value', label: 'Number' }],
+    itemLabel: (r) => `${r.label} — ${r.value}`,
+  },
+  {
+    id: 'theses', group: 'Education pages', title: 'Thesis supervision — list', kind: 'list',
+    help: 'One row per thesis. Rows are grouped by university and level (PhD / Master / Bachelor). Tip: use “Download CSV”, fill it in Excel and “Import CSV”.',
+    fields: [{ name: 'university', label: 'University' }, { name: 'level', label: 'Level (PhD, Master, Bachelor)' }, { name: 'year', label: 'Year' }, { name: 'name', label: 'Student name' }, { name: 'country', label: 'Country' }, { name: 'title', label: 'Thesis title', type: 'textarea' }],
+    itemLabel: (r) => `${r.year} · ${r.name} · ${r.level}`,
+  },
+  {
+    id: 'mediaCoverage', group: 'Outreach pages', title: 'Media coverage', kind: 'list',
+    help: 'Outreach → Media coverage: newspaper, TV and web. Add a scan of the clipping as the image if you have one.',
+    fields: [{ name: 'date', label: 'Date (YYYY-MM-DD)' }, { name: 'outlet', label: 'Newspaper / channel' }, { name: 'title', label: 'Headline' }, { name: 'link', label: 'Link (optional)' }, { name: 'image', label: 'Clipping image (optional)', type: 'image' }],
+    itemLabel: (r) => `${r.date} · ${r.outlet}`,
+  },
+  {
+    id: 'outreachMemberships', group: 'Outreach pages', title: 'Committees & memberships', kind: 'list',
+    help: 'Outreach → Activities: committees, societies, editorial boards and advisory roles.',
+    fields: [{ name: 'text', label: 'Role and organisation', type: 'textarea' }, { name: 'period', label: 'Period' }],
+    itemLabel: (r) => String(r.text ?? '').slice(0, 80),
+  },
+  {
+    id: 'outreachStories', group: 'Outreach pages', title: 'Social contribution', kind: 'list',
+    help: 'Outreach → Activities: workshops, school visits, public lectures and training, with an optional photo.',
+    fields: [{ name: 'title', label: 'Title' }, { name: 'body', label: 'Text', type: 'textarea' }, { name: 'image', label: 'Photo (optional)', type: 'image' }],
+    itemLabel: (r) => r.title || 'Story',
+  },
+  {
+    id: 'pageText', group: 'Page titles & intros', title: 'Page titles and introductions', kind: 'list',
+    help: 'Replace the title and introduction shown in the coloured band at the top of each page. Leave a box empty to keep the built-in text.',
+    fields: [{ name: 'page', label: 'Page' }, { name: 'path', label: 'Address (do not change)' }, { name: 'title', label: 'Title' }, { name: 'intro', label: 'Introduction', type: 'textarea' }],
+    itemLabel: (r) => `${r.page} (${r.path})${r.title || r.intro ? ' — edited' : ''}`,
+  },
 ];
 
 /** Fields that are not translated (links, numbers, images, ids). */
-const NO_JA = new Set(['image', 'photo', 'link', 'url', 'email', 'phone', 'mapUrl', 'instagram', 'num', 'period', 'name', 'newsCount', 'ctaPrimaryLink', 'ctaSecondaryLink']);
+const NO_JA = new Set(['image', 'photo', 'link', 'url', 'email', 'phone', 'mapUrl', 'instagram', 'num', 'period', 'name', 'newsCount', 'ctaPrimaryLink', 'ctaSecondaryLink', 'logo', 'path', 'date', 'year', 'value', 'profileButtonCount', 'whatsNewCount', 'page']);
 
 /** Adds a “(日本語)” twin after every translatable text field so each can be edited in both languages. */
 function withJa(fields: F[]): F[] {
@@ -174,6 +260,25 @@ function BlockEditor({ block, stored, onSaved }: { block: Block; stored?: SiteCo
   };
 
   const rows: any[] = Array.isArray(value) ? value : [];
+  const fileRef = useRef<HTMLInputElement>(null);
+  const columns = block.fields.map((f) => f.name);
+  const exportCsv = () => download(`${block.id}.csv`, '\ufeff' + toCsv(rows.length ? rows : [Object.fromEntries(columns.map((c) => [c, '']))], columns), 'text/csv');
+  const importCsv = async (file?: File) => {
+    if (!file) return;
+    const parsed = parseCsv(await file.text());
+    if (!parsed.length) return toast('The CSV file has no rows.', true);
+    const known = new Set(columns);
+    const imported = parsed.map((r) =>
+      Object.fromEntries(
+        Object.entries(r)
+          .filter(([k]) => known.has(k))
+          .map(([k, v]) => [k, block.fields.find((f) => f.name === k)?.type === 'checkbox' ? /^(true|yes|1)$/i.test(v) : v]),
+      ),
+    );
+    const replace = confirm(`${imported.length} rows read. OK = replace the current ${rows.length} rows, Cancel = add them at the end.`);
+    setValue(replace ? imported : [...rows, ...imported]);
+    toast('Rows loaded. Check them, then click Save.');
+  };
   const setRow = (i: number, name: string, v: any) => setValue(rows.map((r, j) => (j === i ? { ...r, [name]: v } : r)));
   const move = (i: number, d: number) => {
     const next = [...rows];
@@ -193,6 +298,13 @@ function BlockEditor({ block, stored, onSaved }: { block: Block; stored?: SiteCo
         <div className="row">
           {!stored && <span className="tag grey">Using default text</span>}
           {dirty && <span className="tag gold">Unsaved changes</span>}
+          {block.kind === 'list' && (
+            <>
+              <button className="btn ghost sm" onClick={exportCsv}>Download CSV</button>
+              <button className="btn ghost sm" onClick={() => fileRef.current?.click()}>Import CSV</button>
+              <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { void importCsv(e.target.files?.[0]); e.target.value = ''; }} />
+            </>
+          )}
           <button className="btn ghost sm" onClick={() => confirm('Restore the original default for this block?') && setValue(fallback)}>Restore default</button>
           <button className="btn" disabled={saving || !dirty} onClick={() => save()}>{saving ? 'Saving…' : 'Save'}</button>
         </div>
@@ -237,11 +349,13 @@ function BlockEditor({ block, stored, onSaved }: { block: Block; stored?: SiteCo
 export function SiteContentAdmin() {
   const { items, loading, reload } = useLiveModel<SiteContent>('SiteContent');
   const groups = [...new Set(BLOCKS.map((b) => b.group))];
-  const [group, setGroup] = useState(groups[0]);
+  const [params, setParams] = useSearchParams();
+  const group = groups.includes(params.get('group') ?? '') ? (params.get('group') as string) : groups[0];
+  const setGroup = (g: string) => setParams({ group: g }, { replace: true });
   return (
     <>
-      <h1>Site content</h1>
-      <p className="muted">Everything on the website that is not a news post, member or publication: the cover page, headlines, tiles, profile text, contact details and lists. Changes go live as soon as you save.</p>
+      <h1>Site content (all pages)</h1>
+      <p className="muted">Every part of the website that is not a news post, student, publication, project, award, album or visitor: the cover page, headlines, What’s New, partner logos, profile text, Policy advocacy, Thesis supervision, Media coverage, Outreach, and the title and introduction of every page. Each text has a (日本語) box for the Japanese version. Changes go live as soon as you save.</p>
       <div className="tabs">
         {groups.map((g) => <button key={g} className={group === g ? 'active' : ''} onClick={() => setGroup(g)}>{g}</button>)}
       </div>

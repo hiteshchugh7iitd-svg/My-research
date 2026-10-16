@@ -5,7 +5,8 @@ import { DEFAULTS } from '../../lib/defaults';
 import { CATEGORY_LABELS, formatDate } from '../../lib/format';
 import { useLang } from '../../lib/i18n';
 import { useContent, useModel } from '../../lib/store';
-import { Img } from '../../components/ui';
+import { Img, useVisibleChildren } from '../../components/ui';
+import { PILLARS, type Pillar } from '../../lib/sitemap';
 
 /** First sentence of a text, in either language. */
 const firstSentence = (x: string) => (x.includes('。') ? x.split('。')[0] + '。' : x.split('. ')[0] + (x.includes('. ') ? '.' : ''));
@@ -23,6 +24,9 @@ function Hero() {
     return () => clearInterval(t);
   }, [n]);
   const current = slides[i % n];
+  const prof = useContent('professor', DEFAULTS.professor);
+  const links = useContent('profileLinks', DEFAULTS.profileLinks);
+  const buttons = sections.showProfileButtons ? links.slice(0, Number(sections.profileButtonCount) || 4) : [];
   return (
     <section className="hero" aria-label="Seminar photographs">
       {slides.map((s, idx) => (
@@ -47,9 +51,21 @@ function Hero() {
                 <Link className="btn light" to={sections.ctaSecondaryLink}>{tx(sections.ctaSecondaryLabel)}</Link>
               )}
             </div>
+            {buttons.length > 0 && (
+              <div className="profile-buttons">
+                {buttons.map((b) => (
+                  <a key={b.url} href={b.url} target="_blank" rel="noreferrer">{tx(b.label)} ↗</a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+      {sections.showPortrait && prof.photo && (
+        <Link to="/professor" className="hero-portrait" aria-label={L(prof, 'name')}>
+          <Img k={prof.photo} alt={L(prof, 'name')} />
+        </Link>
+      )}
       {current?.caption && <div className="hero-caption">{L(current, 'caption')}</div>}
       {n > 1 && (
         <div className="hero-controls">
@@ -62,6 +78,91 @@ function Hero() {
           </div>
         </div>
       )}
+    </section>
+  );
+}
+
+const PILLAR_ICON: Record<string, string> = { research: '◎', education: '✎', outreach: '❖' };
+
+function PillarBlock({ pillar, text }: { pillar: Pillar; text: string }) {
+  const { tx } = useLang();
+  const children = useVisibleChildren(pillar);
+  return (
+    <div className="pillar">
+      <h3><span className="ico" aria-hidden>{PILLAR_ICON[pillar.key]}</span><Link to={children[0]?.to ?? '/'}>{tx(pillar.label)}</Link></h3>
+      <p>{text}</p>
+      <ul>
+        {children.map((c) => (
+          <li key={c.to}><Link to={c.to}>{tx(c.label)}</Link></li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function WhatsNew({ heading, count }: { heading: string; count: number }) {
+  const { tx, L } = useLang();
+  const items = useContent('whatsNew', DEFAULTS.whatsNew);
+  const list = [...items].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')).slice(0, count || 6);
+  if (!list.length) return null;
+  return (
+    <section className="section whatsnew">
+      <div className="container">
+        <h2>{tx(heading)}</h2>
+        <ul>
+          {list.map((w, idx) => {
+            const text = L(w, 'text');
+            const ext = w.link && /^https?:/.test(w.link);
+            return (
+              <li key={idx}>
+                <time>{formatDate(w.date)}</time>
+                <span>
+                  {!w.link ? text : ext ? <a href={w.link} target="_blank" rel="noreferrer">{text}</a> : <Link to={w.link}>{text}</Link>}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function Partners({ heading }: { heading: string }) {
+  const { tx, L } = useLang();
+  const partners = useContent('partners', DEFAULTS.partners);
+  if (!partners.length) return null;
+  return (
+    <section className="section tight">
+      <div className="container">
+        <h2 className="rule-title">{tx(heading)}</h2>
+        <div className="partners">
+          {partners.map((p) => (
+            <a key={p.name + p.url} href={p.url || undefined} target="_blank" rel="noreferrer" title={L(p, 'name')}>
+              {p.logo ? <Img k={p.logo} alt={L(p, 'name')} /> : L(p, 'name')}
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Fields({ heading }: { heading: string }) {
+  const { tx, L } = useLang();
+  const fields = useContent('fieldStrip', DEFAULTS.fieldStrip);
+  if (!fields.length) return null;
+  return (
+    <section aria-label={tx(heading)}>
+      <h2 className="fields-title">{tx(heading)}</h2>
+      <div className="fields">
+        {fields.map((f) => (
+          <Link key={f.country} to={f.link || '/research#fields'}>
+            {f.image && <Img k={f.image} alt="" />}
+            <span>{L(f, 'country')}</span>
+          </Link>
+        ))}
+      </div>
     </section>
   );
 }
@@ -111,6 +212,18 @@ export default function Home() {
   return (
     <>
       <Hero />
+
+      {sections.showPillars && (
+        <section className="section" style={{ paddingTop: sections.showPortrait ? 70 : undefined }}>
+          <div className="container pillars">
+            {PILLARS.map((p) => (
+              <PillarBlock key={p.key} pillar={p} text={L(sections, `${p.key}Text`)} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sections.showWhatsNew && <WhatsNew heading={sections.whatsNewHeading} count={Number(sections.whatsNewCount)} />}
 
       {sections.showTiles && tiles.length > 0 && (
         <section className="section tight">
@@ -207,6 +320,9 @@ export default function Home() {
         </div>
       </section>
       )}
+
+      {sections.showPartners && <Partners heading={sections.partnersHeading} />}
+      {sections.showFields && <Fields heading={sections.fieldsHeading} />}
     </>
   );
 }

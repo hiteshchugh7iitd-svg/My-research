@@ -1,12 +1,39 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Publication } from '../../lib/amplify';
 import { KIND_LABELS, KIND_SINGULAR, normalize } from '../../lib/format';
 import { useLang } from '../../lib/i18n';
-import { useModel } from '../../lib/store';
-import { FileLink, Loading, PageHeader } from '../../components/ui';
+import { DEFAULTS } from '../../lib/defaults';
+import { useContent, useModel } from '../../lib/store';
+import { FileLink, Img, Loading, PageHeader } from '../../components/ui';
 
 const KINDS = ['PAPER', 'BOOK', 'REPORT', 'TALK'] as const;
+
+/** Underlines Prof. Sakurai's name in author lists (English and Japanese spellings). */
+const ME = /(Sakurai,?\s*A(?:iko|\.)?|A(?:iko|\.)\s*Sakurai|桜井\s*愛子|櫻井\s*愛子)/g;
+function Me({ text }: { text: string }): ReactNode {
+  const parts = text.split(ME);
+  return parts.map((part, i) => (i % 2 ? <span key={i} className="me">{part}</span> : <Fragment key={i}>{part}</Fragment>));
+}
+
+function BookCovers() {
+  const { L } = useLang();
+  const covers = useContent('bookCovers', DEFAULTS.bookCovers);
+  if (!covers.length) return null;
+  return (
+    <div className="covers">
+      {covers.map((c, i) => {
+        const inner = (
+          <>
+            {c.image ? <Img k={c.image} alt={L(c, 'title')} /> : <div className="ph" aria-hidden />}
+            <span>{L(c, 'title')}</span>
+          </>
+        );
+        return c.link ? <a key={i} href={c.link} target="_blank" rel="noreferrer">{inner}</a> : <a key={i}>{inner}</a>;
+      })}
+    </div>
+  );
+}
 
 export default function Publications() {
   const { tx } = useLang();
@@ -16,6 +43,7 @@ export default function Publications() {
   const year = params.get('year') ?? 'ALL';
   const [q, setQ] = useState('');
   const [peer, setPeer] = useState(false);
+  const [toggled, setToggled] = useState<Record<number, boolean>>({});
   const set = (k: string, v: string) => {
     const p = new URLSearchParams(params);
     if (v === 'ALL') p.delete(k);
@@ -39,6 +67,10 @@ export default function Publications() {
     results.forEach((p) => m.set(p.year, [...(m.get(p.year) ?? []), p]));
     return [...m.entries()];
   }, [results]);
+  // The two most recent years start open; searching or filtering by year opens everything.
+  const startOpen = (idx: number) => idx < 2 || !!q || year !== 'ALL';
+  const isOpen = (y: number, idx: number) => toggled[y] ?? startOpen(idx);
+  const setAll = (open: boolean) => setToggled(Object.fromEntries(byYear.map(([y]) => [y, open])));
 
   return (
     <>
@@ -86,13 +118,26 @@ export default function Publications() {
               <input className="input" style={{ width: 220 }} placeholder={tx('Search title, venue, author…')} value={q} onChange={(e) => setQ(e.target.value)} />
             </div>
           </div>
-          <p className="muted small">{results.length} {tx('records')}</p>
+          {(kind === 'ALL' || kind === 'BOOK') && <BookCovers />}
+          <div className="spread">
+            <p className="muted small">{results.length} {tx('records')}</p>
+            {byYear.length > 2 && (
+              <div className="row" style={{ gap: 6 }}>
+                <button className="btn ghost sm" onClick={() => setAll(true)}>{tx('Expand all')}</button>
+                <button className="btn ghost sm" onClick={() => setAll(false)}>{tx('Collapse all')}</button>
+              </div>
+            )}
+          </div>
           {loading ? (
             <Loading />
           ) : (
-            byYear.map(([y, list]) => (
+            byYear.map(([y, list], idx) => (
               <div key={y}>
-                <h3 className="year-head">{y}</h3>
+                <button className="year-toggle" aria-expanded={isOpen(y, idx)} onClick={() => setToggled({ ...toggled, [y]: !isOpen(y, idx) })}>
+                  <span>{y}</span>
+                  <span className="n">{list.length} {tx('records')} {isOpen(y, idx) ? '▲' : '▼'}</span>
+                </button>
+                {isOpen(y, idx) && (
                 <ul className="pub-list">
                   {list.map((p) => (
                     <li key={p.id} className="pub">
@@ -101,7 +146,7 @@ export default function Publications() {
                       </div>
                       <div>
                         <div className="t">{p.title}</div>
-                        {p.authors && <div className="v">{p.authors}</div>}
+                        {p.authors && <div className="v"><Me text={p.authors} /></div>}
                         <div className="v">{[p.venue, tx(p.date)].filter(Boolean).join(' · ')}</div>
                         {(p.note || p.invited) && <div className="n">{tx(p.note) || tx('Invited')}</div>}
                         <div className="links">
@@ -113,6 +158,7 @@ export default function Publications() {
                     </li>
                   ))}
                 </ul>
+                )}
               </div>
             ))
           )}

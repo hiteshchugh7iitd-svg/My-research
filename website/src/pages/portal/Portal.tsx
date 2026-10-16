@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { listAll, parseJson, userClient, unwrap, type Submission } from '../../lib/amplify';
+import { fit, hasField, listAll, parseJson, userClient, unwrap, type Submission } from '../../lib/amplify';
 import { useAuth } from '../../lib/auth';
 import { changed } from '../../lib/audit';
 import { CATEGORY_LABELS, formatDate, KIND_SINGULAR, PROGRAM_LABELS, today } from '../../lib/format';
@@ -40,7 +40,7 @@ function ProfileForm({ member }: { member: MemberView }) {
   const save = async () => {
     setSaving(true);
     try {
-      const fields = {
+      const fields = fit('MemberProfile', {
         researchTopic: form.researchTopic || null,
         researchTopicJa: form.researchTopicJa || null,
         bio: form.bio || null,
@@ -57,7 +57,7 @@ function ProfileForm({ member }: { member: MemberView }) {
         cvKey: form.cvKey,
         links: JSON.stringify(form.links.filter((l) => l.url)),
         documents: JSON.stringify(form.documents.map((d) => ({ key: d.key, title: d.caption ?? '' }))),
-      };
+      });
       if (p) {
         const latest = unwrap(await userClient.models.MemberProfile.get({ id: p.id }));
         if (latest && loadedAt && latest.updatedAt !== loadedAt && !confirm('Your profile was changed somewhere else (another tab or an administrator) after you opened it. Save your version anyway?')) {
@@ -83,29 +83,29 @@ function ProfileForm({ member }: { member: MemberView }) {
         Everything below is yours to edit and appears on <Link to={`/members/${member.slug}`}>your public page</Link>.
       </div>
       <div className="grid2">
-        <FileField label="Profile photo" value={form.photoKey} onChange={(k) => set('photoKey', k)} target={{ area: 'members' }} hint="A portrait, ideally 4:5. Large photos are resized automatically." />
+        <FileField label="Profile photo (optional)" value={form.photoKey} onChange={(k) => set('photoKey', k)} target={{ area: 'members' }} hint="Only if you wish — without a photo your initials are shown. A portrait, ideally 4:5; large photos are resized automatically." />
         <FileField label="CV (PDF)" value={form.cvKey} onChange={(k) => set('cvKey', k)} target={{ area: 'members' }} accept="application/pdf" image={false} />
       </div>
       <div className="grid2">
         <Field label="Research topic (English)"><input type="text" value={form.researchTopic} onChange={(e) => set('researchTopic', e.target.value)} /></Field>
-        <Field label="Research topic (日本語)"><input type="text" value={form.researchTopicJa} onChange={(e) => set('researchTopicJa', e.target.value)} /></Field>
+        {hasField('MemberProfile', 'researchTopicJa') && <Field label="Research topic (日本語)"><input type="text" value={form.researchTopicJa} onChange={(e) => set('researchTopicJa', e.target.value)} /></Field>}
       </div>
       <Field label="About you (English)" hint="Background, research and fieldwork. Separate paragraphs with a blank line."><textarea value={form.bio} onChange={(e) => set('bio', e.target.value)} /></Field>
-      <Field label="About you (日本語, optional)"><textarea value={form.bioJa} onChange={(e) => set('bioJa', e.target.value)} /></Field>
+      {hasField('MemberProfile', 'bioJa') && <Field label="About you (日本語, optional)"><textarea value={form.bioJa} onChange={(e) => set('bioJa', e.target.value)} /></Field>}
       <div className="grid2">
         <Field label="Country or region"><input type="text" value={form.country} onChange={(e) => set('country', e.target.value)} /></Field>
-        <Field label="Country or region (日本語)"><input type="text" value={form.countryJa} onChange={(e) => set('countryJa', e.target.value)} /></Field>
+        {hasField('MemberProfile', 'countryJa') && <Field label="Country or region (日本語)"><input type="text" value={form.countryJa} onChange={(e) => set('countryJa', e.target.value)} /></Field>}
       </div>
       <div className="grid2">
         <Field label="Public contact email (optional)"><input type="email" value={form.contactEmail} onChange={(e) => set('contactEmail', e.target.value)} /></Field>
       </div>
       <div className="grid2">
         <Field label="Thesis title"><input type="text" value={form.thesisTitle} onChange={(e) => set('thesisTitle', e.target.value)} /></Field>
-        <Field label="Thesis title (日本語)"><input type="text" value={form.thesisTitleJa} onChange={(e) => set('thesisTitleJa', e.target.value)} /></Field>
+        {hasField('MemberProfile', 'thesisTitleJa') && <Field label="Thesis title (日本語)"><input type="text" value={form.thesisTitleJa} onChange={(e) => set('thesisTitleJa', e.target.value)} /></Field>}
       </div>
       <div className="grid2">
         <Field label="Current position (for alumni)"><input type="text" value={form.currentPosition} onChange={(e) => set('currentPosition', e.target.value)} /></Field>
-        <Field label="Current position (日本語)"><input type="text" value={form.currentPositionJa} onChange={(e) => set('currentPositionJa', e.target.value)} /></Field>
+        {hasField('MemberProfile', 'currentPositionJa') && <Field label="Current position (日本語)"><input type="text" value={form.currentPositionJa} onChange={(e) => set('currentPositionJa', e.target.value)} /></Field>}
       </div>
       <Field label="Research interests" hint="Comma-separated, e.g. school safety, evacuation, Nepal"><input type="text" value={form.interests} onChange={(e) => set('interests', e.target.value)} /></Field>
       <LinksField label="Links" value={form.links} onChange={(v) => set('links', v)} />

@@ -137,6 +137,8 @@ To take a photo away: click the small **×** on the picture, then **Save**.
 
 ### 3.2 Change your own photo (Student)
 
+A photo is **optional**. If you prefer not to add one, your initials are shown instead.
+
 1. Sign in → **My page** → tab **My profile**.
 2. Find **Profile photo** → click the dotted box → choose a photo.
 3. Click **Save profile** at the bottom.
@@ -252,17 +254,29 @@ Your name, programme and year of entry are kept by the office. If they are wrong
 
 ## PART 6 — Other things Admins can change
 
-| I want to change… | Go to… |
+Every part of the website can be changed by Prof. Sakurai and the Admins. In the left menu of
+Admin, the group **Site content (all pages)** has one link per area:
+
+| I want to change… | Left menu → Site content (all pages) → … |
 |---|---|
-| The title, motto, welcome text or a banner announcement | Left menu → **Cover page & site text** → **Site title, headlines & banner** |
-| The four picture boxes below the slideshow | **Cover page & site text** → **Feature tiles** |
-| Show or hide parts of the Home page | **Cover page & site text** → **Sections & buttons** |
-| Prof. Sakurai's biography and photo | **Cover page & site text** → tab **Pages** → **Prof. Sakurai profile** |
-| Address, email, phone | **Cover page & site text** → tab **Pages** → **Contact details** |
-| Career, education, courses, partner links | **Cover page & site text** → other tabs |
-| Visiting scholars list | Left menu → **Visitors** → **+ Add visitor** |
-| Research projects | Left menu → **Research projects** |
-| Awards | Left menu → **Awards** |
+| Cover photos, title, motto, banner announcement, feature tiles | **Home page & cover** |
+| Show or hide any part of the Home page (portrait, Research/Education/Outreach blocks, What's New, partner logos, Fields strip) | **Home page & cover** → **Sections & buttons** |
+| "What's New" lines on the Home page | **Home page & cover** → **What's New** → **+ Add** |
+| Partner logos and the "Fields" country photos | **Home page & cover** → **Partner logos** / **"Fields" photo strip** |
+| Prof. Sakurai's biography and portrait (the round photo on the cover uses it) | **Profile & contact** → **Prof. Sakurai profile** |
+| Address, email, phone | **Profile & contact** → **Contact details** |
+| researchmap / ORCID / ResearchGate buttons | **Career & profile links** → **Profile links** (the first four appear on the cover) |
+| Policy advocacy page, book covers on Publications | **Policy advocacy & books** |
+| Thesis supervision page (numbers and the list of theses) | **Thesis supervision** |
+| Media coverage, committees & memberships, social contribution | **Media & outreach** |
+| The title and introduction at the top of any page | **Page titles & intros** |
+| Visiting scholars, research projects, awards | Left menu → **Visitors** / **Research projects** / **Awards** |
+
+The pages **Policy advocacy**, **Thesis supervision** and **Media coverage** appear in the menu for
+visitors as soon as they have at least one entry. Until then only staff see them.
+
+**Long lists (e.g. theses):** click **Download CSV**, fill the file in Excel, save it as CSV, then
+click **Import CSV**, check the rows and click **Save**.
 
 For every item: change it, then click **Save**. Changes appear on the public website straight away.
 

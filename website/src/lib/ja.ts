@@ -411,6 +411,46 @@ const D: Record<string, string> = {
   'with R. Shaw': 'R. Shawとの共著',
   'with K. Takiguchi, T. Sato, R. Kimura': 'K. Takiguchi、T. Sato、R. Kimuraとの共著',
 
+  // ---------- Research / Education / Outreach sections ----------
+  Home: 'ホーム',
+  'Prof. Sakurai': '桜井教授',
+  'Themes & projects': '研究テーマ・プロジェクト',
+  Courses: '授業',
+  'Policy advocacy': '政策提言',
+  'Thesis supervision': '論文指導',
+  'Media coverage': 'メディア掲載',
+  Outreach: '社会貢献',
+  'Outreach activities': '社会貢献活動',
+  "What's New": '新着情報',
+  'What’s New': '新着情報',
+  Partners: '連携機関',
+  Fields: 'フィールド',
+  'Expand all': 'すべて開く',
+  'Collapse all': 'すべて閉じる',
+  'More information ↗': '詳しくはこちら ↗',
+  'No.': 'No.',
+  Year: '年度',
+  Country: '国・地域',
+  'Thesis title': '論文題目',
+  PhD: '博士論文',
+  Master: '修士論文',
+  Bachelor: '卒業論文',
+  'Committees, memberships and roles': '委員・学会等の役職',
+  'Social contribution': '社会貢献',
+  'This section is being prepared. Staff can add entries in Admin → Site content.': 'このページは準備中です。',
+  'Advisory work with ministries, local governments and international organisations, turning research into policy and practice.':
+    '省庁・自治体・国際機関への助言を通じて、研究成果を政策と実践につなげています。',
+  'Doctoral and master’s theses supervised by Prof. Sakurai.': '桜井教授が指導した博士論文・修士論文。',
+  'Newspaper, television and web coverage of the seminar’s work.': 'ゼミの活動に関する新聞・テレビ・ウェブでの報道。',
+  'Awards, committees and memberships, and work with governments, schools and communities.':
+    '受賞、委員・学会活動、行政・学校・地域との協働。',
+  'Disaster risk reduction education, school safety and recovery in Japan and across Asia, from policy design to classroom practice.':
+    '日本とアジアにおける防災教育・学校安全・復興を、政策設計から教室での実践まで研究しています。',
+  'Courses, thesis supervision and seminar life at the Graduate School of International Cooperation Studies, Kobe University.':
+    '神戸大学大学院国際協力研究科での授業、論文指導、ゼミ活動。',
+  'Social contribution through committees, training, media and exchanges with partners and visiting researchers.':
+    '委員会、研修、メディア、連携機関や訪問研究者との交流を通じた社会貢献。',
+  'Profile photo (optional)': 'プロフィール写真（任意）',
 };
 
 const MONTHS: Record<string, number> = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };

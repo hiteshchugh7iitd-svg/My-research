@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { parseJson, userClient, unwrap, type Member, type MemberProfile } from '../../lib/amplify';
+import { hasField, parseJson, userClient, unwrap, type Member, type MemberProfile } from '../../lib/amplify';
 import { useAuth } from '../../lib/auth';
 import { changed } from '../../lib/audit';
 import { formatDate, normalize, PROGRAM_LABELS, slugify, STATUS_LABELS, uniqueSlug } from '../../lib/format';
@@ -33,7 +33,7 @@ const ROSTER: FieldDef[] = [
   { name: 'slug', label: 'Web address (leave blank to generate)', type: 'text' },
 ];
 const PROFILE: FieldDef[] = [
-  { name: 'photoKey', label: 'Profile photo', type: 'image', folder: 'members' },
+  { name: 'photoKey', label: 'Profile photo (optional — students choose whether to add one)', type: 'image', folder: 'members' },
   { name: 'researchTopic', label: 'Research topic', type: 'text', half: true },
   { name: 'researchTopicJa', label: 'Research topic (日本語)', type: 'text', half: true },
   { name: 'country', label: 'Country or region', type: 'text', half: true },
@@ -85,7 +85,7 @@ export async function saveMember(form: Record<string, any>, all: Member[], exist
   const taken = all.filter((x) => x.id !== existing?.id).map((x) => x.slug);
   const roster = {
     name: String(form.name).trim(),
-    nameJa: nul(form.nameJa),
+    ...(hasField('Member', 'nameJa') ? { nameJa: nul(form.nameJa) } : {}),
     program: form.program || 'MASTERS',
     status: form.status || 'CURRENT',
     entryYear: form.entryYear === '' || form.entryYear == null ? null : Number(form.entryYear),
@@ -99,7 +99,7 @@ export async function saveMember(form: Record<string, any>, all: Member[], exist
     : unwrap(await userClient.models.Member.create(roster));
   const profileFields: Record<string, any> = {};
   for (const k of ['photoKey', 'researchTopic', 'researchTopicJa', 'country', 'countryJa', 'contactEmail', 'bio', 'bioJa', 'thesisTitle', 'thesisTitleJa', 'currentPosition', 'currentPositionJa', 'cvKey']) {
-    if (k in form) profileFields[k] = nul(form[k]);
+    if (k in form && hasField('MemberProfile', k)) profileFields[k] = nul(form[k]);
   }
   if ('interests' in form) profileFields.interests = String(form.interests ?? '').split(',').map((s) => s.trim()).filter(Boolean);
   if (Object.keys(profileFields).length) {
@@ -297,9 +297,9 @@ export function MembersAdmin() {
         >
           {editing.m && <div style={{ marginBottom: 18 }}><InviteBox member={current ?? editing.m} onDone={reload} /></div>}
           <h3>Roster (staff only)</h3>
-          <FormFields fields={ROSTER} form={editing.form} set={(n, v) => setEditing((e) => e && { ...e, form: { ...e.form, [n]: v } })} />
+          <FormFields fields={ROSTER.filter((f) => hasField('Member', f.name))} form={editing.form} set={(n, v) => setEditing((e) => e && { ...e, form: { ...e.form, [n]: v } })} />
           <h3 style={{ marginTop: 26 }}>Profile {current?.ownerId && <span className="small muted">— the student can also edit this</span>}</h3>
-          <FormFields fields={PROFILE} form={editing.form} set={(n, v) => setEditing((e) => e && { ...e, form: { ...e.form, [n]: v } })} />
+          <FormFields fields={PROFILE.filter((f) => hasField('MemberProfile', f.name))} form={editing.form} set={(n, v) => setEditing((e) => e && { ...e, form: { ...e.form, [n]: v } })} />
         </Drawer>
       )}
     </>
