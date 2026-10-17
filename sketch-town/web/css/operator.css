@@ -27,7 +27,7 @@ header {
 .pill.ok { color: var(--ok); border-color: var(--ok); }
 .pill.bad { color: var(--accent); border-color: var(--accent); }
 main {
-  display: grid; grid-template-columns: 250px minmax(0, 1fr) 330px; gap: 14px; padding: 14px;
+  display: grid; grid-template-columns: 270px minmax(0, 1fr) 330px; gap: 14px; padding: 14px;
 }
 @media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
 .col { background: var(--panel); border-radius: 18px; padding: 12px 14px; border: 2px solid var(--line); min-width: 0; }
@@ -48,8 +48,9 @@ button.danger { background: #3a6ff7; color: #fff; border-color: #2448b8; font-we
 .filebtn input { display: none; }
 .row { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
 .row > * { flex: 1 1 auto; }
-.templates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.templates button { padding: 4px; display: flex; flex-direction: column; align-items: center; font-size: 12px; }
+.templates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.templates button { padding: 3px; display: flex; flex-direction: column; align-items: center; font-size: 11px; line-height: 1.2; }
+.templates small { font-size: 9px; color: var(--muted); }
 .templates canvas { width: 100%; height: auto; background: #fff; border-radius: 8px; }
 .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .tools button { font-size: 13px; padding: 7px 4px; }

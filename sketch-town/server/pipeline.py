@@ -65,10 +65,14 @@ def decode_bytes(data):
 
 
 # ------------------------------------------------------------ registration
-def _square_candidates(gray):
+def _square_candidates(gray, adaptive=False):
     h, w = gray.shape
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    _, bw = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    if adaptive:  # camera photos with shadows / uneven classroom light
+        block = int(min(w, h) / 6) | 1
+        bw = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, block, 18)
+    else:
+        _, bw = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     contours, _ = cv2.findContours(bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     min_area = (min(w, h) * 0.012) ** 2
     max_area = (min(w, h) * 0.2) ** 2
@@ -102,7 +106,14 @@ def find_fiducials(img):
     small = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA) if scale < 1 else img
     s = scale if scale < 1 else 1.0
     gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
-    cands = _square_candidates(gray)
+    for adaptive in (False, True):
+        pts = _pick_corners(gray, _square_candidates(gray, adaptive))
+        if pts is not None:
+            return pts / s
+    return None
+
+
+def _pick_corners(gray, cands):
     if len(cands) < 4:
         return None
     h, w = gray.shape
@@ -120,7 +131,7 @@ def find_fiducials(img):
     hollow = [_hollowness(gray, c) for c in chosen]
     rot = int(np.argmax(hollow)) if max(hollow) > 128 else 0
     chosen = chosen[rot:] + chosen[:rot]
-    return np.float32([c["c"] for c in chosen]) / s
+    return np.float32([c["c"] for c in chosen])
 
 
 def find_paper_quad(img):
@@ -186,6 +197,24 @@ def silhouette_mask(tpl, w=W, h=H):
     return cv2.GaussianBlur(mask, (5, 5), 0)
 
 
+def flatten_light(sheet_bgr, tpl):
+    """Remove shadows / light gradients (camera photos) using the blank paper around
+    the drawing as a reference: estimate the paper colour everywhere by inpainting
+    over the drawing and the printed marks, then divide it out."""
+    sw, sh = 160, 120
+    small = cv2.resize(sheet_bgr, (sw, sh), interpolation=cv2.INTER_AREA)
+    gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
+    not_paper = cv2.resize(silhouette_mask(tpl), (sw, sh)) > 0
+    not_paper = cv2.dilate(not_paper.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+    not_paper |= gray < np.percentile(gray[~not_paper], 90) * 0.75  # printed marks and text
+    if not_paper.mean() > 0.9:
+        return sheet_bgr
+    bg = cv2.inpaint(small, not_paper.astype(np.uint8) * 255, 6, cv2.INPAINT_TELEA)
+    bg = cv2.GaussianBlur(bg, (0, 0), 6)
+    bg = cv2.resize(bg, sheet_bgr.shape[1::-1], interpolation=cv2.INTER_CUBIC).astype(np.float32)
+    return np.clip(sheet_bgr.astype(np.float32) / np.maximum(bg, 30) * 245, 0, 255).astype(np.uint8)
+
+
 def enhance(sheet_bgr, boost=True):
     img = sheet_bgr.astype(np.float32)
     # white-balance on the paper: brightest pixels become pure white
@@ -207,7 +236,7 @@ def enhance(sheet_bgr, boost=True):
 
 
 def cutout(sheet_bgr, tpl, boost=True):
-    color = enhance(sheet_bgr, boost)
+    color = enhance(flatten_light(sheet_bgr, tpl) if boost else sheet_bgr, boost)
     color = cv2.resize(color, (OUT_W, OUT_H), interpolation=cv2.INTER_AREA)
     alpha = silhouette_mask(tpl, OUT_W, OUT_H)
     return np.dstack([color, alpha])

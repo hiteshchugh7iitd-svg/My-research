@@ -350,6 +350,8 @@ $('btnDragon').onclick = () => bus.command({ type: 'dragon' });
 $('btnDemo').onclick = () => bus.command({ type: 'demo', count: 6 });
 $('btnNight').onclick = () => bus.command({ type: 'daynight' });
 $('btnTour').onclick = () => bus.command({ type: 'tour' });
+$('btnBright').onclick = () => bus.command({ type: 'brightness' });
+$('btnQuality').onclick = () => bus.command({ type: 'quality' });
 $('volume').oninput = e => bus.command({ type: 'volume', value: +e.target.value / 100 });
 $('btnClearWall').onclick = async () => {
   if (!confirm('街の絵をぜんぶ消しますか? Remove every drawing from the city (and the saved gallery)?')) return;

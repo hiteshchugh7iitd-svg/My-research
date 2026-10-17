@@ -118,6 +118,31 @@ export function buildModel(tpl, texture, color = '#ff6060') {
     model.add(mast);
   }
 
+  if (tpl.kind === 'heli' && tpl.rotor) {
+    const r = tpl.rotor;
+    const bladeMat = new THREE.MeshStandardMaterial({ color, roughness: 0.6, emissive: color, emissiveIntensity: 0.2 });
+    const rotor = new THREE.Group();
+    rotor.position.set((r.mast[0] - b.cx) * k, (b.maxY - r.y) * k, 0);
+    const len = (r.x1 - r.x0) * k;
+    for (const a of [0, Math.PI / 2]) {
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(len, 0.05, 0.22), bladeMat);
+      blade.rotation.y = a;
+      rotor.add(blade);
+    }
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, (r.mast[1] - r.y) * k, 6), bladeMat);
+    mast.position.y = -(r.mast[1] - r.y) * k / 2;
+    rotor.add(mast);
+    model.add(rotor);
+    const tail = new THREE.Group();
+    tail.position.set((r.tail.c[0] - b.cx) * k, (b.maxY - r.tail.c[1]) * k, maxDepth / 2 + 0.08);
+    tail.add(new THREE.Mesh(new THREE.BoxGeometry(r.tail.r * 2 * k, 0.12, 0.04), bladeMat));
+    model.add(tail);
+    parts.rotor = rotor;
+    parts.tailRotor = tail;
+  }
+
+  if (tpl.kind === 'rocket') parts.exhaust = new THREE.Vector3(0, 0, 0); // bottom-centre of the drawing
+
   if (tpl.kind === 'jet') {
     // drawn as a top view with the nose up the page: lay it flat, nose toward +X
     const fin = new THREE.Mesh(new THREE.BufferGeometry().setFromPoints([
@@ -320,13 +345,141 @@ export class Boat extends Actor {
   }
 }
 
+// Fish swim around Merlion Bay with a wagging tail and sometimes leap out with a splash.
+export class Fish extends Actor {
+  constructor(app, item, tpl, parts) {
+    super(app, item, tpl, parts);
+    const c = app.world.bayCenter;
+    this.cx = c.x + (Math.random() - 0.5) * 18;
+    this.cz = c.z + (Math.random() - 0.5) * 26;
+    this.r = 6 + Math.random() * 14;
+    this.a = Math.random() * Math.PI * 2;
+    this.rate = (Math.random() < 0.5 ? -1 : 1) * (0.12 + Math.random() * 0.08);
+    this.phase = Math.random() * 6;
+    this.jump = -1;
+    this.nextJump = 3 + Math.random() * 8;
+    this.place(0);
+  }
+  place(t) {
+    const sg = Math.sign(this.rate);
+    const x = this.cx + Math.cos(this.a) * this.r, z = this.cz + Math.sin(this.a) * this.r;
+    let y = -0.12 * this.parts.size.h + Math.sin(t * 2 + this.phase) * 0.1; // belly just under the surface
+    let pitch = 0;
+    if (this.jump >= 0) {
+      const j = this.jump;                     // 0..1 arc
+      y += Math.sin(Math.PI * j) * 4.5;
+      pitch = (0.5 - j) * 1.6;
+    }
+    this.root.position.set(x, y, z);
+    const heading = Math.atan2(-Math.cos(this.a) * sg, -Math.sin(this.a) * sg);
+    this.root.rotation.set(0, heading, pitch, 'YZX');
+  }
+  update(dt, t) {
+    if (!this.active) return;
+    this.a += this.rate * dt * (this.boost > 0 ? 3 : 1);
+    this.nextJump -= dt;
+    if (this.jump < 0 && this.nextJump <= 0) { this.jump = 0; this.splash(); }
+    if (this.jump >= 0) {
+      this.jump += dt / 1.3;
+      if (this.jump >= 1) { this.jump = -1; this.nextJump = 6 + Math.random() * 10; this.splash(); }
+    }
+    this.place(t);
+    this.animatePoke(dt);
+    this.parts.body.rotation.y += Math.sin(t * 8 + this.phase) * 0.18; // tail wag
+  }
+  splash() {
+    const p = this.root.position;
+    this.app.world.addRipple(p.x, p.z);
+    for (let i = 0; i < 40; i++) {
+      const v = new THREE.Vector3((Math.random() - 0.5) * 4, 3 + Math.random() * 4, (Math.random() - 0.5) * 4);
+      this.app.water.emit(new THREE.Vector3(p.x, 0.2, p.z), v, new THREE.Color(0.75, 0.95, 1), 0.5, 1.1, -9.8, 0.2);
+    }
+  }
+  poke() { super.poke(); if (this.jump < 0) { this.jump = 0; this.splash(); } }
+}
+
+// Rockets corkscrew slowly around the skyline, tilted into their flight, with a flame trail.
+export class Rocket extends Actor {
+  constructor(app, item, tpl, parts) {
+    super(app, item, tpl, parts);
+    this.cx = -10 + Math.random() * 20;
+    this.cz = -20 + Math.random() * 15;
+    this.R = 35 + Math.random() * 25;
+    this.t = Math.random() * Math.PI * 2;
+    this.rate = 0.07 + Math.random() * 0.04;
+    this.base = 26 + Math.random() * 12;
+    this.place();
+  }
+  pathAt(t) { return new THREE.Vector3(this.cx + Math.cos(t) * this.R, this.base + Math.sin(t * 3) * 8, this.cz + Math.sin(t) * this.R * 0.6); }
+  place() {
+    const p = this.pathAt(this.t), q = this.pathAt(this.t + 0.01);
+    const v = q.sub(p).normalize();
+    this.dir = v;
+    this.root.position.copy(p);
+    // stay mostly upright, lean 35° toward the direction of travel
+    const lean = new THREE.Vector3(v.x, 0, v.z).normalize().multiplyScalar(0.7).add(UP).normalize();
+    this.root.quaternion.setFromUnitVectors(UP, lean);
+  }
+  update(dt) {
+    if (!this.active) return;
+    this.t += this.rate * dt * (this.boost > 0 ? 3 : 1);
+    this.place();
+    this.animatePoke(dt);
+    this.roll = (this.roll || 0) + dt * 1.5;
+    this.parts.body.rotation.y += this.roll; // slow roll shows off both sides
+    const ex = this.root.localToWorld(tmpV.copy(this.parts.exhaust));
+    const down = new THREE.Vector3(0, -1, 0).applyQuaternion(this.root.quaternion).multiplyScalar(6);
+    for (let i = 0; i < 4; i++) {
+      const c = new THREE.Color().setHSL(0.03 + Math.random() * 0.12, 1, 0.55);
+      const v = down.clone().add(new THREE.Vector3().randomDirection().multiplyScalar(1.2));
+      this.app.glow.emit(ex, v, c, 0.9 + Math.random() * 0.8, 0.8, 0, 0.6);
+    }
+  }
+}
+
+// Helicopters patrol over the city in slow circles, nose slightly down, rotors spinning.
+export class Heli extends Actor {
+  constructor(app, item, tpl, parts) {
+    super(app, item, tpl, parts);
+    this.cx = -45 + Math.random() * 65;
+    this.cz = -20 + Math.random() * 45;
+    this.R = 10 + Math.random() * 12;
+    this.t = Math.random() * Math.PI * 2;
+    this.rate = (Math.random() < 0.5 ? -1 : 1) * (0.15 + Math.random() * 0.08);
+    this.alt = 13 + Math.random() * 8;
+    this.place(0);
+  }
+  place(time) {
+    const x = this.cx + Math.cos(this.t) * this.R, z = this.cz + Math.sin(this.t) * this.R;
+    this.root.position.set(x, this.alt + Math.sin(time * 1.3 + this.cx) * 0.6, z);
+    const sg = Math.sign(this.rate);
+    const heading = Math.atan2(-Math.cos(this.t) * sg, -Math.sin(this.t) * sg);
+    this.root.rotation.set(sg * 0.12, heading, -0.12, 'YXZ'); // bank into the turn, nose down
+  }
+  update(dt, time) {
+    if (!this.active) return;
+    this.t += this.rate * dt * (this.boost > 0 ? 3 : 1);
+    this.place(time);
+    if (this.parts.rotor) this.parts.rotor.rotation.y += dt * 25;
+    if (this.parts.tailRotor) this.parts.tailRotor.rotation.z += dt * 30;
+    this.animatePoke(dt);
+  }
+}
+
 export function createActor(app, item, tpl, texture) {
   const parts = buildModel(tpl, texture, item.color);
   if (tpl.kind === 'vehicle') return new Vehicle(app, item, tpl, parts);
   if (tpl.kind === 'jet') return new Jet(app, item, tpl, parts);
   if (tpl.kind === 'boat') return new Boat(app, item, tpl, parts);
-  const plot = app.world.plots.find(p => !p.used);
+  if (tpl.kind === 'fish') return new Fish(app, item, tpl, parts);
+  if (tpl.kind === 'rocket') return new Rocket(app, item, tpl, parts);
+  if (tpl.kind === 'heli') return new Heli(app, item, tpl, parts);
+  // big drawings (schools, towers) need more room: keep clear of neighbouring buildings
+  const r = Math.max(parts.size.w, parts.size.d) / 2;
+  const used = app.world.plots.filter(p => p.used);
+  const plot = app.world.plots.find(p => !p.used && used.every(u => Math.hypot(u.x - p.x, u.z - p.z) > (r + u.r) * 0.9));
   if (!plot) return null;
   plot.used = true;
+  plot.r = r;
   return new Building(app, item, tpl, parts, plot);
 }

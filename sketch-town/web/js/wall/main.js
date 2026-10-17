@@ -12,7 +12,7 @@ import { UfoFleet } from './ufo.js';
 import { Dragon } from './dragon.js';
 import { Particles, Beams } from './fx.js';
 
-const LIMITS = { vehicle: 36, building: 30, jet: 10, boat: 10 };
+const LIMITS = { vehicle: 36, building: 30, jet: 10, boat: 10, fish: 14, rocket: 6, heli: 8 };
 const HOME = { pos: new THREE.Vector3(0, 42, 102), target: new THREE.Vector3(0, 7, -10) };
 
 const data = await loadTemplates();
@@ -80,6 +80,48 @@ const app = {
     return best;
   },
 };
+// ------------------------------------------- quality / projector brightness
+// Classroom PCs vary a lot: start high, drop automatically if the frame rate is low,
+// and let the teacher override with [Q] / the operator button. [B] brightens the
+// picture for projectors, which wash out dark scenes.
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
+};
+const QUALITY = [
+  { ja: '高', en: 'High', ratio: Math.min(window.devicePixelRatio, 2), shadows: true, map: 4096, bloom: true },
+  { ja: '中', en: 'Medium', ratio: 1, shadows: true, map: 2048, bloom: true },
+  { ja: '低', en: 'Low', ratio: 0.75, shadows: false, map: 1024, bloom: false },
+];
+const EXPOSURE = [1.1, 1.4, 1.75];
+let qIdx = store.get('st_quality', null);
+const autoQuality = qIdx === null;
+qIdx ??= 0;
+let expIdx = store.get('st_exposure', 0);
+
+function setQuality(i, announce = true) {
+  qIdx = (i + QUALITY.length) % QUALITY.length;
+  const q = QUALITY[qIdx];
+  renderer.setPixelRatio(q.ratio);
+  composer.setPixelRatio(q.ratio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  if (renderer.shadowMap.enabled !== q.shadows || moon.shadow.mapSize.x !== q.map) {
+    renderer.shadowMap.enabled = q.shadows;
+    moon.shadow.mapSize.set(q.map, q.map);
+    moon.shadow.map?.dispose();
+    moon.shadow.map = null;
+    scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => (m.needsUpdate = true)); });
+  }
+  bloom.enabled = q.bloom;
+  if (announce) app.toast(`🎛 画質 Quality: ${q.ja} ${q.en}`, 2000);
+}
+function setExposure(i, announce = true) {
+  expIdx = (i + EXPOSURE.length) % EXPOSURE.length;
+  renderer.toneMappingExposure = EXPOSURE[expIdx];
+  if (announce) app.toast(`☀ 明るさ Brightness ${expIdx + 1}/${EXPOSURE.length}`, 2000);
+}
+
 app.world = buildWorld(scene);
 app.glow = new Particles(scene, 9000);
 app.water = new Particles(scene, 2500, { additive: true });
@@ -134,7 +176,7 @@ function clearAll() { [...app.actors].forEach(removeActor); updateHud(); }
 
 let demoSeed = 0;
 function spawnDemo(n = 6, opts = {}) {
-  const order = ['truck', 'ecar', 'house', 'tower', 'jet', 'sailboat'];
+  const order = data.templates.map(t => t.id);
   for (let i = 0; i < n; i++) {
     const tpl = data.byId[order[(demoSeed++) % order.length]];
     const canvas = makeDemoTexture(data.sheet, tpl);
@@ -144,7 +186,7 @@ function spawnDemo(n = 6, opts = {}) {
 
 function updateHud() {
   const count = k => app.actors.filter(a => a.tpl.kind === k).length;
-  $('hud').textContent = `スケッチタウン Sketch Town — 🚚 ${count('vehicle')}  🏠 ${count('building')}  ✈️ ${count('jet')}  ⛵ ${count('boat')}`;
+  $('hud').textContent = `スケッチタウン Sketch Town — 🚚 ${count('vehicle')}  🏠 ${count('building')}  ✈️ ${count('jet')}  🚁 ${count('heli')}  🚀 ${count('rocket')}  ⛵ ${count('boat')}  🐟 ${count('fish')}`;
 }
 
 // ---------------------------------------------------------- day/night
@@ -192,13 +234,13 @@ renderer.domElement.addEventListener('pointerup', e => {
   if (!h) return;
   if (h.dragon) {
     // every jet / truck / car nearby fires a counter-defence beam at the touched spot
-    const shooters = app.actors.filter(a => a.active && a.tpl.kind !== 'building')
+    const shooters = app.actors.filter(a => a.active && !['building', 'fish'].includes(a.tpl.kind))
       .sort((a, b) => a.root.position.distanceTo(h.point) - b.root.position.distanceTo(h.point)).slice(0, 3);
     if (!shooters.length) counterAttack(camera.position.clone().add(new THREE.Vector3(0, -6, -4)), h.point, 6);
     shooters.forEach((s, i) => setTimeout(() => counterAttack(s.root.position.clone().add(new THREE.Vector3(0, 1.2, 0)), h.point, 4), i * 110));
   } else if (h.actor) {
     h.actor.poke();
-    if (app.dragon.active && !app.dragon.dying && h.actor.tpl.kind !== 'building') {
+    if (app.dragon.active && !app.dragon.dying && !['building', 'fish'].includes(h.actor.tpl.kind)) {
       const from = h.actor.root.position.clone().add(new THREE.Vector3(0, 1.2, 0));
       counterAttack(from, app.dragon.nearestPoint(from), 6);
     }
@@ -222,6 +264,8 @@ function command(cmd) {
     case 'volume': app.audio.setVolume(cmd.value); break;
     case 'clear': clearAll(); break;
     case 'home': camera.position.copy(HOME.pos); controls.target.copy(HOME.target); break;
+    case 'quality': setQuality(qIdx + 1); store.set('st_quality', qIdx); break;
+    case 'brightness': setExposure(expIdx + 1); store.set('st_exposure', expIdx); break;
   }
 }
 
@@ -232,6 +276,8 @@ window.addEventListener('keydown', e => {
   else if (k === 't') command({ type: 'tour' });
   else if (k === 's') command({ type: 'demo', count: 6 });
   else if (k === 'h') command({ type: 'home' });
+  else if (k === 'q') command({ type: 'quality' });
+  else if (k === 'b') command({ type: 'brightness' });
   else if (k === 'm') app.audio.setVolume(app.audio.volume > 0 ? 0 : 0.7);
   else if (k === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
 });
@@ -245,7 +291,24 @@ $('start').addEventListener('click', () => {
   app.audio.start();
   $('start').remove();
   if (!app.actors.length) spawnDemo(6);
+  if (autoQuality) watchFps();
 });
+
+// measure the frame rate for a few seconds and step quality down if the PC struggles
+function watchFps(round = 0) {
+  let frames = 0;
+  const t0 = performance.now();
+  const count = () => {
+    frames++;
+    if (performance.now() - t0 < 6000) return requestAnimationFrame(count);
+    const fps = frames / 6;
+    if (fps < 28 && qIdx < QUALITY.length - 1) {
+      setQuality(qIdx + 1);
+      if (round < 1) setTimeout(() => watchFps(round + 1), 2000);
+    }
+  };
+  requestAnimationFrame(count);
+}
 
 // restore the drawings saved on the server so a restart keeps the city
 try {
@@ -304,6 +367,8 @@ function frame() {
   requestAnimationFrame(frame);
 }
 applyNight(1);
+setQuality(qIdx, false);
+setExposure(expIdx, false);
 frame();
 Object.assign(app, { addItem, command, spawnDemo, controls });
 window.__sketchTown = app; // handy for debugging from the console
