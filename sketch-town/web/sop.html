@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch Town SOP</title>
+<style>
+  :root { --ink: #2b2140; --muted: #6f6585; --line: #e6dccb; --accent: #ff6b6b; --soft: #fff7ea; --ok: #1e7d4f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f4efe6; color: var(--ink);
+    font-family: "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif; line-height: 1.55; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+  .page { background: #fff; border-radius: 14px; padding: 26px 30px; margin-bottom: 18px; border: 1px solid var(--line); }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  h1 small { display: block; font-size: 15px; color: var(--muted); font-weight: 500; }
+  h2 { font-size: 19px; margin: 6px 0 12px; padding-bottom: 6px; border-bottom: 3px solid #ffd6a5; }
+  h3 { font-size: 15px; margin: 16px 0 6px; }
+  ol, ul { padding-left: 1.4em; margin: 6px 0; }
+  li { margin: 5px 0; }
+  .en { color: var(--muted); font-size: .92em; }
+  .meta { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }
+  th, td { border: 1px solid var(--line); padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: var(--soft); }
+  .tip { background: var(--soft); border-left: 5px solid #ffb703; padding: 9px 12px; border-radius: 8px; margin: 10px 0; font-size: 14px; }
+  .warn { background: #fff0f0; border-left: 5px solid var(--accent); padding: 9px 12px; border-radius: 8px; margin: 10px 0; font-size: 14px; }
+  kbd { border: 1px solid #bbb; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: .9em; background: #fafafa; }
+  .check li { list-style: none; margin-left: -1.2em; }
+  .check li::before { content: "☐ "; }
+  .flow { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-weight: 700; margin: 8px 0; }
+  .flow span { background: var(--soft); border: 2px solid #ffd6a5; border-radius: 99px; padding: 5px 12px; }
+  .noprint { text-align: right; }
+  .noprint button { font: inherit; padding: 8px 16px; border-radius: 10px; border: 2px solid var(--line); background: #fff; cursor: pointer; }
+  @media print {
+    body { background: #fff; }
+    main { padding: 0; max-width: none; }
+    .page { border: 0; border-radius: 0; padding: 0 4mm; page-break-after: always; }
+    .noprint { display: none; }
+    @page { size: A4; margin: 14mm; }
+  }
+</style>
+</head>
+<body>
+<main>
+<div class="noprint"><button onclick="print()">🖨 印刷 Print this SOP</button></div>
+
+<section class="page">
+  <h1>スケッチタウン 運用手順書 (SOP)
+    <small>Sketch Town: Standard Operating Procedure for school sessions</small></h1>
+  <div class="meta">
+    <span>対象 For: 先生・スタッフ Teachers &amp; staff</span>
+    <span>機材 Equipment: Windows PC, projector, scanner or document camera, speakers, A4 printer</span>
+    <span>所要 Session: 45–90 min</span>
+  </div>
+
+  <h2>0. 全体の流れ Overview</h2>
+  <div class="flow"><span>① ぬりえを選ぶ Choose</span>→<span>② ぬる Color</span>→<span>③ スキャン Scan</span>→<span>④ UFOが街へ UFO delivers</span>→<span>⑤ タッチで遊ぶ Tap &amp; play</span></div>
+  <p>PC のモニター = <b>操作画面 (Operator station)</b>。プロジェクター = <b>3Dウォール (3D Wall)</b>.<br>
+  <span class="en">The PC monitor shows the operator station and the projector shows the 3D city. Everything runs on this one PC, with no internet needed.</span></p>
+
+  <h2>1. 初回セットアップ (1回だけ) One-time setup</h2>
+  <ol>
+    <li><b>Python をインストール</b>: python.org から Python 3.10 以上。インストール時に <b>「Add Python to PATH」にチェック</b>。<br>
+      <span class="en">Install Python 3.10+ from python.org and tick "Add Python to PATH".</span></li>
+    <li><b>ZIP を展開</b>: <code>sketch-town</code> フォルダをデスクトップなどに置く (日本語を含まない場所が安全)。<br>
+      <span class="en">Unzip the sketch-town folder to the Desktop (a path without special characters is safest).</span></li>
+    <li><b><code>start_windows.bat</code> をダブルクリック</b>。初回は部品のインストールで約1分。黒い画面は<b>閉じない</b>。<br>
+      <span class="en">Double-click start_windows.bat. The first run installs parts (about 1 min). Keep the black window open.</span></li>
+    <li><b>スキャナーの保存先を設定</b>: スキャナーのアプリで、保存先 = <code>sketch-town\scans\inbox</code>、形式 = JPEG/PNG、カラー、200–300dpi、「保存ダイアログを出さない」に設定。<br>
+      <span class="en">In the scanner's own app, set: save to sketch-town\scans\inbox, JPEG/PNG, color, 200–300 dpi, no save dialog.</span><br>
+      書画カメラを使う場合は不要 <span class="en">(not needed if you use a document camera)</span>.</li>
+    <li><b>ぬりえを印刷</b>: 操作画面 →「🧾 ぬりえ印刷」→「ぜんぶ (12まい)」。必要な枚数をコピー。<br>
+      <span class="en">Print sheets: Operator → Print coloring sheets → All 12, then photocopy as many as you need. Photocopies work.</span></li>
+    <li><b>テスト</b>: 1枚ぬってスキャンし、「きろく Activity」に <b>via fiducials</b> と出ればOK。<br>
+      <span class="en">Test: color one sheet and scan it. The activity log should say "via fiducials".</span></li>
+  </ol>
+  <div class="warn">⚠ 用紙の<b>四隅の■</b>と<b>下の小さな■■■■</b>は大事なマークです。ぬらない・切らない・折らない。<br>
+    <span class="en">The 4 corner squares and the small code squares at the bottom are how the computer reads the sheet. Don't color, cut or fold them.</span></div>
+</section>
+
+<section class="page">
+  <h2>2. 当日の準備 (授業の10分前) Before each session (10 min)</h2>
+  <ul class="check">
+    <li>プロジェクターをPCにつなぎ、<kbd>Windows</kbd>+<kbd>P</kbd> →「<b>拡張 Extend</b>」。<span class="en">Connect the projector and choose Extend, not Duplicate.</span></li>
+    <li>スピーカーをつなぐ。<span class="en">Connect the speakers.</span></li>
+    <li><code>start_windows.bat</code> をダブルクリック → 操作画面がブラウザ (Chrome/Edge) で開く。<span class="en">Start the app. The operator station opens.</span></li>
+    <li>右上が <b>「● サーバーOK」</b>(緑) になっていることを確認。<span class="en">Check the top-right pill is green "Server OK".</span></li>
+    <li>「🌏 3Dウォールを開く」→ ウォールがプロジェクターに出る (出なければウィンドウをドラッグ)。<span class="en">Click Open 3D Wall. If it doesn't appear on the projector, drag the window there.</span></li>
+    <li>マウスをプロジェクター側へ移動 → ウォールを<b>1回クリック</b> (音がスタート) → <kbd>F</kbd> で全画面。<span class="en">Click the wall once to start the sound, then press F for fullscreen.</span></li>
+    <li>暗く見えたら「☀ 明るさ」または <kbd>B</kbd>。明るい教室なら「🌙/☀ 昼夜」で昼モード。<span class="en">If the picture looks dark, press B or switch to day mode.</span></li>
+    <li>スキャナーの電源ON、ぬりえ・クレヨンを配る。<span class="en">Turn on the scanner and hand out sheets and crayons.</span></li>
+  </ul>
+
+  <h2>3. 授業中の手順 During the session</h2>
+  <h3>A. 紙でぬる場合 Paper sheets (main activity)</h3>
+  <ol>
+    <li>子どもが好きなぬりえを選んで、クレヨン・ペンでぬる (10–20分)。<span class="en">Children choose a sheet and color it.</span></li>
+    <li>スキャナーに置いて (または原稿送りに入れて) スキャン。<span class="en">Scan it on the flatbed or through the feeder.</span></li>
+    <li>約3秒で操作画面に光のスキャン演出 → ウォールに <b>UFO</b> が絵を運んでくる。<span class="en">About 3 seconds later, a UFO brings the drawing into the city.</span></li>
+    <li>子どもはウォールの自分の絵を<b>クリック/タッチ</b>して遊ぶ (ジャンプ・回転・音)。<span class="en">Children click their drawing to make it jump, spin and play a note.</span></li>
+  </ol>
+  <h3>B. 書画カメラの場合 Document camera instead of scanner</h3>
+  <ol>
+    <li>操作画面「📷 カメラ」→ カメラを選んで「▶ カメラON」。<span class="en">Open the camera panel and turn the camera on.</span></li>
+    <li>紙を緑のわくに合わせ、「📸 とる」。<span class="en">Fit the sheet in the green frame and press Capture.</span></li>
+  </ol>
+  <h3>C. 画面でぬる場合 Drawing on screen (no paper)</h3>
+  <ol>
+    <li>左でぬりえを選ぶ → マウスでぬる (クレヨン・にじ・ぬりつぶし・けしゴム)。<span class="en">Pick a template and draw with the mouse.</span></li>
+    <li>「✨ スキャンしておくる!」を押す。<span class="en">Press Scan &amp; Send.</span></li>
+  </ol>
+  <h3>D. ドラゴンイベント Dragon event (5 min, great for the finale)</h3>
+  <ol>
+    <li>「🐉 ドラゴン出現!」または <kbd>D</kbd>。<span class="en">Press Dragon or the D key.</span></li>
+    <li>みんなでドラゴンや車・ジェット機をクリック → ビームでHPを減らす。<span class="en">Everyone clicks the dragon, cars or jets to fire beams at it.</span></li>
+    <li>HP 0 で花火と「やったね!」。<span class="en">When HP reaches 0, fireworks and "You saved the city!"</span></li>
+  </ol>
+</section>
+
+<section class="page">
+  <h2>4. うまくいかない時 (手動操作) Troubleshooting &amp; manual override</h2>
+  <p>操作画面の右側「<b>🛠 手動 Manual override</b>」を開きます。<span class="en">Open the Manual override panel on the right of the operator station.</span></p>
+  <table>
+    <tr><th>こまったこと Problem</th><th>やること What to do</th></tr>
+    <tr><td>スキャンしたのに出てこない<br><span class="en">Scanned but nothing appears</span></td>
+      <td>①「🔄 フォルダを今すぐ確認」。② 一覧にファイルがあれば「▶ 送る」。③ 一覧にない → スキャナーの保存先が <code>scans\inbox</code> か確認、または「🖼 画像をえらぶ」で手動アップロード。<br>
+      <span class="en">Press Check folder now, then Send on the file. If the file isn't listed, check the scanner's save folder or upload the file by hand.</span></td></tr>
+    <tr><td>一覧に ⚠️ (確認) と出た / 形がずれた<br><span class="en">⚠️ shown, or the shape is cut wrongly</span></td>
+      <td>「📐」→ 画像の四隅の■を ①左上(□) ②右上 ③右下 ④左下 の順にクリック →「おくる」。<br>
+      <span class="en">Press 📐 and click the 4 corner squares in order (top-left hollow one first), then Send.</span></td></tr>
+    <tr><td>ちがう乗り物になった (例: 車がバスに)<br><span class="en">Wrong template (a car became a bus)</span></td>
+      <td>「ぬりえの種類 Template」で正しいものを選ぶ → その行の「▶ 送る」。使い終わったら「自動 Auto」に戻す。<br>
+      <span class="en">Choose the right template, press Send on that file, then set the menu back to Auto.</span></td></tr>
+    <tr><td>まちがった絵がウォールに出た<br><span class="en">A wrong drawing is on the wall</span></td>
+      <td>「↩ 最後の絵をウォールから消す」。<span class="en">Remove last drawing.</span></td></tr>
+    <tr><td>スマホ写真・メールの画像を使いたい<br><span class="en">Use a phone photo / emailed image</span></td>
+      <td>操作画面にドラッグ&amp;ドロップ、または「🖼 画像をえらぶ」。四隅を指定したい時は「📐 画像をえらんで四隅を指定」。<br>
+      <span class="en">Drag the file onto the drawing area, or use Upload or Pick an image &amp; mark corners.</span></td></tr>
+    <tr><td>音が出ない <span class="en">No sound</span></td>
+      <td>ウォールを1回クリック。PCの音量とスピーカーを確認。<kbd>M</kbd> はミュート切替。<span class="en">Click the wall once, check the volume. M toggles mute.</span></td></tr>
+    <tr><td>動きがカクカク <span class="en">Animation stutters</span></td>
+      <td>自動で画質が下がります。さらに「🎛 画質」または <kbd>Q</kbd> で「低」。<span class="en">Quality lowers automatically. Press Q for Low.</span></td></tr>
+    <tr><td>「● サーバー停止」(赤)<br><span class="en">Red "Server offline"</span></td>
+      <td>黒い画面が閉じていないか確認。閉じていたら <code>start_windows.bat</code> をもう一度。絵は保存されています。<br>
+      <span class="en">The black window was closed. Start the .bat again. Drawings are kept.</span></td></tr>
+    <tr><td>ウォールがプロジェクターに出ない<br><span class="en">Wall not on the projector</span></td>
+      <td><kbd>Windows</kbd>+<kbd>P</kbd> →「拡張」。ウィンドウをプロジェクター側へドラッグ → <kbd>F</kbd>。<span class="en">Choose Extend, drag the window across, press F.</span></td></tr>
+  </table>
+
+  <h2>5. 授業のおわり End of session</h2>
+  <ul class="check">
+    <li>絵は自動保存。次回起動しても街に残ります。<span class="en">Drawings are saved automatically and come back next time.</span></li>
+    <li>次のクラスのために空にする時は「🧹 リセット」。<span class="en">Use Clear city to start fresh for the next class.</span></li>
+    <li>ブラウザを閉じ、黒い画面で <kbd>Ctrl</kbd>+<kbd>C</kbd> (または閉じる)。<span class="en">Close the browser and the black window.</span></li>
+    <li>スキャンした元の画像は <code>scans\inbox</code>、切り抜いた絵は <code>scans\textures</code> にあります (持ち帰り・掲示用)。<span class="en">Original scans and cut-out drawings are kept in these folders.</span></li>
+  </ul>
+
+  <h2>6. キーボード Shortcuts (3D wall)</h2>
+  <table>
+    <tr><td><kbd>D</kbd> ドラゴン Dragon</td><td><kbd>N</kbd> 昼/夜 Day/Night</td><td><kbd>T</kbd> カメラ旋回 Tour</td><td><kbd>H</kbd> 元の視点 Home</td></tr>
+    <tr><td><kbd>F</kbd> 全画面 Fullscreen</td><td><kbd>B</kbd> 明るさ Brightness</td><td><kbd>Q</kbd> 画質 Quality</td><td><kbd>M</kbd> ミュート Mute</td></tr>
+    <tr><td colspan="4"><kbd>S</kbd> サンプルの絵 Sample drawings · マウス: クリック=タッチ、ドラッグ=回転、ホイール=ズーム <span class="en">(click = poke, drag = orbit, wheel = zoom)</span></td></tr>
+  </table>
+  <div class="tip">💡 コツ Tips: 太いクレヨン・マーカーがきれいに出ます。うすい鉛筆は薄くなります。1回の授業で1人1〜3枚がちょうどよい量です。<br>
+    <span class="en">Thick crayon or marker scans best. 1–3 sheets per child works well for one session.</span></div>
+</section>
+</main>
+</body>
+</html>

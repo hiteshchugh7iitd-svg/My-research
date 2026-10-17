@@ -18,7 +18,9 @@ import time
 import uuid
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
+
+import cv2
 
 import pipeline
 
@@ -94,9 +96,10 @@ def save_json(path, data):
     os.replace(tmp, path)
 
 
-def ingest(img, source, template_id=None, registered=False, boost=True, label=""):
+def ingest(img, source, template_id=None, registered=False, boost=True, label="", force=False, corners=None):
     """Run the pipeline on a decoded image, store the texture and announce it."""
-    rgba, info = pipeline.process(img, template_id, registered=registered, boost=boost)
+    rgba, info = pipeline.process(img, template_id, registered=registered, boost=boost,
+                                  force_template=force, corners=corners)
     sid = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6]
     pipeline.save_png(os.path.join(TEXTURES, sid + ".png"), rgba)
     item = {"id": sid, "url": f"/textures/{sid}.png", "source": source, "label": label, "time": time.time(), **info}
@@ -105,7 +108,7 @@ def ingest(img, source, template_id=None, registered=False, boost=True, label=""
         gallery.append(item)
         save_json(GALLERY, gallery[-500:])
     HUB.publish({"type": "spawn", "item": item, "id": sid})
-    detail = "" if info["codeDetected"] or registered else " (template code not found, used operator choice)"
+    detail = "" if info["codeDetected"] or registered or force else " (template code not found, used operator choice)"
     HUB.note("ok", f"{source}: {label or sid} -> {info['template']} via {info['method']}{detail}")
     return item
 
@@ -123,6 +126,8 @@ class FolderWatcher(threading.Thread):
         self.interval = interval
         self.seen = set(load_json(SEEN, []))
         self.pending = {}
+        self.status = {}  # name -> {"status": done|failed|check, "text": ..., "id": ...}
+        self.lock = threading.Lock()
 
     def run(self):
         os.makedirs(self.folder, exist_ok=True)
@@ -134,9 +139,49 @@ class FolderWatcher(threading.Thread):
                 HUB.note("error", f"watcher: {e}")
             time.sleep(self.interval)
 
+    def names(self):
+        return sorted(n for n in os.listdir(self.folder) if n.lower().endswith(IMAGE_EXT) and not n.startswith("."))
+
+    def path_of(self, name):
+        path = os.path.abspath(os.path.join(self.folder, name))
+        if os.path.dirname(path) != os.path.abspath(self.folder) or not os.path.isfile(path):
+            raise FileNotFoundError(name)
+        return path
+
+    def process_file(self, name, template=None, force=False, corners=None, source="scanner"):
+        """Process one file from the folder (automatically or by manual override)."""
+        HUB.publish({"type": "scanning", "label": name})
+        try:
+            img = pipeline.read_image(self.path_of(name))
+            item = ingest(img, source, template or self.get_default_template(), label=name, force=force, corners=corners)
+            ok = force or (item["method"] in ("fiducials", "manual-corners") and item["codeDetected"])
+            self.status[name] = {"status": "done" if ok else "check", "id": item["id"], "template": item["template"],
+                                 "text": f"{item['template']} via {item['method']}" + (" (manual)" if force else "")}
+            return item
+        except Exception as e:
+            self.status[name] = {"status": "failed", "text": str(e)}
+            HUB.note("error", f"{name}: {e}")
+            raise
+
+    def listing(self):
+        out = []
+        for name in self.names()[-60:]:
+            try:
+                st = os.stat(os.path.join(self.folder, name))
+            except OSError:
+                continue
+            key = f"{name}|{int(st.st_mtime)}|{st.st_size}"
+            info = self.status.get(name) or ({"status": "done", "text": "processed earlier"} if key in self.seen
+                                             else {"status": "waiting", "text": "waiting for the scanner to finish"})
+            out.append({"name": name, "size": st.st_size, "mtime": st.st_mtime, **info})
+        return sorted(out, key=lambda x: -x["mtime"])
+
     def poll(self):
-        names = [n for n in os.listdir(self.folder) if n.lower().endswith(IMAGE_EXT) and not n.startswith(".")]
-        for name in sorted(names):
+        with self.lock:
+            self._poll()
+
+    def _poll(self):
+        for name in self.names():
             path = os.path.join(self.folder, name)
             try:
                 st = os.stat(path)
@@ -152,12 +197,10 @@ class FolderWatcher(threading.Thread):
             self.pending.pop(name, None)
             self.seen.add(key)
             save_json(SEEN, sorted(self.seen)[-5000:])
-            HUB.publish({"type": "scanning", "label": name})
             try:
-                img = pipeline.read_image(path)
-                ingest(img, "scanner", self.get_default_template(), label=name)
-            except Exception as e:
-                HUB.note("error", f"{name}: {e}")
+                self.process_file(name)
+            except Exception:
+                pass  # already logged; the operator can retry from the manual panel
 
 
 # ------------------------------------------------------- WIA (Windows)
@@ -243,6 +286,23 @@ class Handler(BaseHTTPRequestHandler):
                 "defaultTemplate": self.config["template"],
                 "wia": os.name == "nt",
             })
+        if p == "/api/inbox":
+            return self.send_json({"folder": self.watcher.folder, "files": self.watcher.listing()})
+        if p == "/api/inbox/preview":  # JPEG preview for the corner-picking dialog (also for PDF/TIFF)
+            name = parse_qs(url.query).get("name", [""])[0]
+            try:
+                img = pipeline.read_image(self.watcher.path_of(name))
+            except (FileNotFoundError, pipeline.ScanError):
+                return self.send_error(404)
+            k = 1600.0 / max(img.shape[:2])
+            if k < 1:
+                img = cv2.resize(img, None, fx=k, fy=k, interpolation=cv2.INTER_AREA)
+            data = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 88])[1].tobytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/jpeg")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            return self.wfile.write(data)
         if p == "/api/gallery":
             return self.send_json(load_json(GALLERY, [])[-120:])
         if p.startswith("/textures/"):
@@ -262,8 +322,31 @@ class Handler(BaseHTTPRequestHandler):
                 img = pipeline.decode_bytes(self.read_body())
                 src = self.headers.get("X-Source", "upload")
                 tpl = self.headers.get("X-Template") or self.config["template"]
+                force = self.headers.get("X-Force-Template") == "1"
+                corners = json.loads(self.headers.get("X-Corners") or "null")
                 HUB.publish({"type": "scanning", "label": src})
-                return self.send_json(ingest(img, src, tpl, label=unquote(self.headers.get("X-Label", ""))))
+                return self.send_json(ingest(img, src, tpl, label=unquote(self.headers.get("X-Label", "")),
+                                             force=force, corners=corners))
+            if p == "/api/inbox/process":  # manual send / retry of a scanner file
+                req = json.loads(self.read_body())
+                tpl = req.get("template") or None
+                with self.watcher.lock:
+                    item = self.watcher.process_file(req["name"], tpl, force=bool(tpl), corners=req.get("corners"),
+                                                     source="manual")
+                return self.send_json(item)
+            if p == "/api/inbox/rescan":
+                self.watcher.pending.clear()
+                self.watcher.poll()
+                return self.send_json({"ok": True})
+            if p == "/api/remove-last":  # take the most recent drawing back off the wall
+                with GALLERY_LOCK:
+                    gallery = load_json(GALLERY, [])
+                    item = gallery.pop() if gallery else None
+                    save_json(GALLERY, gallery)
+                if item:
+                    HUB.publish({"type": "command", "command": {"type": "remove", "id": item["id"]}})
+                    HUB.note("info", f"removed {item.get('label') or item['id']} from the wall")
+                return self.send_json({"removed": item})
             if p == "/api/submit":  # drawn on screen: already aligned to the sheet
                 img = pipeline.decode_bytes(self.read_body())
                 tpl = self.headers.get("X-Template") or self.config["template"]
@@ -326,7 +409,8 @@ def main():
 
     os.makedirs(TEXTURES, exist_ok=True)
     Handler.config = {"watch": os.path.abspath(args.watch), "template": args.template}
-    FolderWatcher(Handler.config["watch"], lambda: Handler.config["template"]).start()
+    Handler.watcher = FolderWatcher(Handler.config["watch"], lambda: Handler.config["template"])
+    Handler.watcher.start()
 
     httpd = ThreadingHTTPServer((args.host, args.port), Handler)
     httpd.daemon_threads = True

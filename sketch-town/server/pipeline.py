@@ -152,7 +152,14 @@ def find_paper_quad(img):
     return np.float32([pts[np.argmin(ssum)], pts[np.argmin(diff)], pts[np.argmax(ssum)], pts[np.argmax(diff)]])
 
 
-def register(img):
+def register(img, corners=None):
+    """corners: optional 4 points (fractions 0..1 of the image size, order TL, TR, BR, BL)
+    clicked by the operator on the corner squares when automatic detection fails."""
+    if corners is not None:
+        h, w = img.shape[:2]
+        pts = np.float32([[x * w, y * h] for x, y in corners])
+        M = cv2.getPerspectiveTransform(pts, CANON_CENTERS)
+        return cv2.warpPerspective(img, M, (W, H), flags=cv2.INTER_CUBIC, borderValue=(255, 255, 255)), "manual-corners"
     pts = find_fiducials(img)
     if pts is not None:
         M = cv2.getPerspectiveTransform(pts, CANON_CENTERS)
@@ -253,15 +260,19 @@ def dominant_color(rgba):
     return "#%02x%02x%02x" % (r, g, b)
 
 
-def process(img, template_id=None, registered=False, boost=True):
-    """Return (rgba, info). `registered=True` means img is already the canonical sheet."""
+def process(img, template_id=None, registered=False, boost=True, force_template=False, corners=None):
+    """Return (rgba, info). `registered=True` means img is already the canonical sheet.
+    `force_template=True` uses `template_id` even if the sheet's code says otherwise
+    (manual override); `corners` are operator-clicked corner-square positions."""
     if registered:
         sheet = cv2.resize(img, (W, H), interpolation=cv2.INTER_AREA)
         method = "digital"
     else:
-        sheet, method = register(img)
-    code = read_code(sheet) if method == "fiducials" else 0
-    tpl = template_for_code(code)
+        sheet, method = register(img, corners)
+    tpl = None
+    if not (force_template and template_id in TEMPLATES):
+        code = read_code(sheet) if method in ("fiducials", "manual-corners") else 0
+        tpl = template_for_code(code)
     detected = tpl is not None
     if tpl is None:
         tpl = TEMPLATES.get(template_id) or TEMPLATES["truck"]

@@ -213,12 +213,13 @@ $('btnSend').onclick = async () => {
   $('btnSend').disabled = false;
 };
 
-async function postScan(blob, source, label = '') {
+async function postScan(blob, source, label = '', corners = null) {
+  const forced = $('overrideTpl').value;
+  const headers = { 'X-Source': source, 'X-Template': forced || state.tpl.id, 'X-Label': encodeURIComponent(label) };
+  if (forced) headers['X-Force-Template'] = '1';
+  if (corners) headers['X-Corners'] = JSON.stringify(corners);
   try {
-    const r = await fetch('/api/scan', {
-      method: 'POST', body: blob,
-      headers: { 'X-Source': source, 'X-Template': state.tpl.id, 'X-Label': encodeURIComponent(label) },
-    });
+    const r = await fetch('/api/scan', { method: 'POST', body: blob, headers });
     const item = await r.json();
     if (!r.ok) throw new Error(item.error || r.statusText);
     return item;
@@ -282,6 +283,95 @@ $('fileInput').onchange = async e => {
   for (const f of e.target.files) await postScan(f, 'upload', f.name);
   e.target.value = '';
 };
+
+// ------------------------------------------------------- manual override
+for (const t of data.templates) $('overrideTpl').add(new Option(`${t.name_ja} ${t.name_en}`, t.id));
+
+const STATUS_ICON = { done: '✅', check: '⚠️', failed: '❌', waiting: '⏳' };
+async function refreshInbox() {
+  try {
+    const { files } = await (await fetch('/api/inbox')).json();
+    const ul = $('inbox');
+    ul.innerHTML = '';
+    if (!files.length) ul.innerHTML = '<li class="small">まだファイルがありません (no files yet)</li>';
+    for (const f of files.slice(0, 25)) {
+      const li = document.createElement('li');
+      li.className = f.status;
+      const help = f.status === 'check' ? ' — check the result, fix with 📐 or a template' : '';
+      li.innerHTML = `<span>${STATUS_ICON[f.status] || '•'}</span><span class="nm"></span>
+        <span class="btns"><button data-a="send" title="Send again (uses the template override if chosen)">▶ 送る</button>
+        <button data-a="corners" title="Mark the 4 corners by hand">📐</button></span><span class="st"></span>`;
+      li.querySelector('.nm').textContent = f.name;
+      li.querySelector('.st').textContent = (f.text || '') + help;
+      li.querySelector('[data-a=send]').onclick = () => sendInboxFile(f.name);
+      li.querySelector('[data-a=corners]').onclick = () =>
+        openCorners(`/api/inbox/preview?name=${encodeURIComponent(f.name)}`, corners => sendInboxFile(f.name, corners));
+      ul.append(li);
+    }
+  } catch { /* server offline */ }
+}
+async function sendInboxFile(name, corners = null) {
+  try {
+    const r = await fetch('/api/inbox/process', {
+      method: 'POST', body: JSON.stringify({ name, template: $('overrideTpl').value || null, corners }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+  } catch (e) { addLog('error', `${name}: ${e.message}`); }
+  refreshInbox();
+}
+$('btnRescan').onclick = async () => {
+  await fetch('/api/inbox/rescan', { method: 'POST' }).catch(() => {});
+  setTimeout(refreshInbox, 300);
+};
+$('btnRemoveLast').onclick = async () => {
+  const r = await fetch('/api/remove-last', { method: 'POST' }).then(x => x.json()).catch(() => ({}));
+  message(r.removed ? `↩ ${r.removed.label || r.removed.template} を消しました (removed)` : 'ウォールに絵がありません (nothing to remove)');
+};
+$('manualPanel').addEventListener('toggle', () => { if ($('manualPanel').open) refreshInbox(); });
+setInterval(() => { if ($('manualPanel').open) refreshInbox(); }, 3000);
+
+// Corner picker: the operator clicks the 4 corner squares when automatic detection fails.
+const CORNER_NAMES = ['① 左上 top-left (the hollow □)', '② 右上 top-right', '③ 右下 bottom-right', '④ 左下 bottom-left'];
+let cornerPts = [], cornerDone = null;
+function openCorners(src, done) {
+  cornerPts = []; cornerDone = done;
+  $('cornerImg').src = src;
+  drawCorners();
+  $('cornerDlg').hidden = false;
+}
+function drawCorners() {
+  $('cornerMarks').innerHTML = cornerPts.map(([x, y], i) => `<span style="left:${x * 100}%;top:${y * 100}%">${i + 1}</span>`).join('');
+  $('cornerHint').textContent = cornerPts.length < 4
+    ? `つぎ Next: ${CORNER_NAMES[cornerPts.length]} — click the centre of the black square`
+    : 'OK! 「おくる Send」をおしてね';
+  $('cornerSend').disabled = cornerPts.length < 4;
+}
+$('cornerImg').onclick = e => {
+  if (cornerPts.length >= 4) return;
+  const r = e.target.getBoundingClientRect();
+  cornerPts.push([(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]);
+  drawCorners();
+};
+$('cornerUndo').onclick = () => { cornerPts.pop(); drawCorners(); };
+$('cornerCancel').onclick = () => { $('cornerDlg').hidden = true; };
+$('cornerSend').onclick = () => { $('cornerDlg').hidden = true; cornerDone?.(cornerPts); };
+$('cornerFile').onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  openCorners(URL.createObjectURL(f), corners => postScan(f, 'manual', f.name, corners));
+  e.target.value = '';
+};
+
+// drag & drop image files onto the scanner bed
+const bedEl = $('bed');
+bedEl.addEventListener('dragover', e => { e.preventDefault(); bedEl.classList.add('drop'); });
+bedEl.addEventListener('dragleave', () => bedEl.classList.remove('drop'));
+bedEl.addEventListener('drop', async e => {
+  e.preventDefault();
+  bedEl.classList.remove('drop');
+  for (const f of e.dataTransfer.files) if (f.type.startsWith('image/')) await postScan(f, 'upload', f.name);
+});
 
 // --------------------------------------------------------------- webcam
 let stream = null;
@@ -369,7 +459,7 @@ function addLog(level, text, time = Date.now() / 1000) {
 
 // ------------------------------------------------------------------ bus
 const bus = new Bus(ev => {
-  if (ev.type === 'log') addLog(ev.level, ev.text, ev.time);
+  if (ev.type === 'log') { addLog(ev.level, ev.text, ev.time); if ($('manualPanel').open) refreshInbox(); }
   else if (ev.type === 'scanning' && ev.label !== 'drawing') { sweep(); message('🔎 スキャン中… Scanning…'); }
   else if (ev.type === 'spawn' && ev.item.source !== 'drawing') {
     audio.chime();

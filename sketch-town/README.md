@@ -88,6 +88,18 @@ Other ways in:
 * **📷 Overhead camera**: a USB webcam or document camera looking down at the sheet. Fit the
   sheet in the green guide frame and press *Capture*.
 
+**If a scan doesn't appear, or appears wrong:** open *🛠 Manual override* on the operator station.
+It lists the recent files in the scanner folder with their status (✅ done, ⚠️ check, ❌ failed):
+
+* **🔄 Check folder now**: look for new files immediately.
+* **▶ Send**: process a file again. If a template is chosen in the *Template* menu, that template is forced
+  (use this when the code squares were colored over).
+* **📐**: click the 4 corner squares yourself when they can't be found automatically (smudged, cut off, dark photo).
+* **📐 Pick an image & mark corners**: the same for any image file. You can also drag image files onto the drawing area.
+* **↩ Remove last drawing**: takes the most recent drawing off the wall.
+
+The step-by-step classroom procedure is in **`Sketch_Town_SOP.pdf`** (also on the operator station under *📘 使い方 SOP*).
+
 ## 4. Coloring sheets
 
 On the operator station, open *🧾 Print coloring sheets* and print **this sheet** or **all 6**

@@ -263,6 +263,7 @@ function command(cmd) {
     case 'tour': touring = !touring; controls.autoRotate = touring; break;
     case 'volume': app.audio.setVolume(cmd.value); break;
     case 'clear': clearAll(); break;
+    case 'remove': { const a = app.actors.find(x => x.item.id === cmd.id); if (a) removeActor(a); updateHud(); break; }
     case 'home': camera.position.copy(HOME.pos); controls.target.copy(HOME.target); break;
     case 'quality': setQuality(qIdx + 1); store.set('st_quality', qIdx); break;
     case 'brightness': setExposure(expIdx + 1); store.set('st_exposure', expIdx); break;

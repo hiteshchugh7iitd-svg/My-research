@@ -12,6 +12,7 @@
   <div class="pills">
     <span id="pillServer" class="pill bad">● サーバー Server</span>
     <span id="pillDisplays" class="pill">🖥 0 displays</span>
+    <a class="pill" href="/sop.html" target="_blank">📘 使い方 SOP</a>
     <button id="btnWall" class="primary">🌏 3Dウォールを開く Open 3D Wall</button>
   </div>
 </header>
@@ -64,6 +65,22 @@
       <label class="filebtn">🖼 画像をえらぶ Upload scan/photo<input type="file" id="fileInput" accept="image/*" multiple></label>
     </details>
 
+    <details id="manualPanel">
+      <summary>🛠 手動 Manual override</summary>
+      <p class="small">自動でうまくいかない時に使います。Use this when a scan doesn't appear, or appears as the wrong picture.</p>
+      <label class="small">ぬりえの種類 Template:
+        <select id="overrideTpl"><option value="">自動 Auto (read the code squares)</option></select>
+      </label>
+      <p class="small">↑ Choose a template to force it for uploads, camera captures and the Send buttons below.</p>
+      <div class="row"><button id="btnRescan">🔄 フォルダを今すぐ確認 Check folder now</button></div>
+      <p class="small">スキャナーフォルダの最近のファイル Recent files in the scanner folder:</p>
+      <ul id="inbox" class="inbox"><li class="small">…</li></ul>
+      <div class="row">
+        <label class="filebtn">📐 画像をえらんで四隅を指定 Pick an image &amp; mark corners<input type="file" id="cornerFile" accept="image/*"></label>
+      </div>
+      <div class="row"><button id="btnRemoveLast">↩ 最後の絵をウォールから消す Remove last drawing from wall</button></div>
+    </details>
+
     <details>
       <summary>📷 カメラ Overhead camera</summary>
       <div class="cam">
@@ -111,6 +128,19 @@
     <ul id="log" class="log"></ul>
   </aside>
 </main>
+
+<div id="cornerDlg" class="dlg" hidden>
+  <div class="dlgbox">
+    <h3>📐 四隅の■をクリック Click the 4 corner squares</h3>
+    <p class="small" id="cornerHint"></p>
+    <div class="cornerwrap"><img id="cornerImg" alt=""><div id="cornerMarks"></div></div>
+    <div class="row">
+      <button id="cornerUndo">↶ もどす Undo</button>
+      <button id="cornerCancel">✖ やめる Cancel</button>
+      <button id="cornerSend" class="primary" disabled>✨ おくる Send</button>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="js/operator.js"></script>
 </body>
