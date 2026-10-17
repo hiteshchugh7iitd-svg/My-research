@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+scans/textures/
+scans/gallery.json
+scans/seen.json
+scans/inbox/*
+!scans/inbox/.gitkeep

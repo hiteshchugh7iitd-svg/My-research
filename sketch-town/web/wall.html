@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch Town Wall</title>
+<style>
+  :root { --ink: #fff; --glass: rgba(20, 16, 50, .55); }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #050816; color: var(--ink);
+    font-family: "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans JP", system-ui, sans-serif; }
+  canvas { display: block; }
+  #start { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, rgba(80,40,140,.65), rgba(5,8,22,.95));
+    cursor: pointer; z-index: 10; text-align: center; }
+  #start h1 { font-size: clamp(32px, 6vw, 84px); margin: 0; letter-spacing: .05em;
+    background: linear-gradient(90deg, #ff9ad5, #ffe16b, #7bf7ff, #b18cff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #start p { font-size: clamp(16px, 2vw, 26px); opacity: .9; }
+  #start .go { display: inline-block; margin-top: 18px; padding: 14px 36px; border-radius: 99px; background: #ffe16b; color: #3a2060; font-weight: 800; font-size: 24px; }
+  #hud { position: fixed; left: 16px; bottom: 14px; font-size: 14px; opacity: .8; pointer-events: none; text-shadow: 0 1px 3px #000; }
+  #toast { position: fixed; top: 22px; left: 50%; transform: translateX(-50%) translateY(-20px); padding: 12px 26px; border-radius: 99px; background: var(--glass);
+    backdrop-filter: blur(6px); font-size: clamp(16px, 2vw, 26px); opacity: 0; transition: .4s; pointer-events: none; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #hp { position: fixed; top: 84px; left: 50%; transform: translateX(-50%); width: min(560px, 80vw); opacity: 0; transition: .4s; pointer-events: none; text-align: center; }
+  #hp.show { opacity: 1; }
+  #hp .track { height: 22px; border-radius: 99px; background: rgba(0,0,0,.5); border: 2px solid #9fd1ff; overflow: hidden; }
+  #hpBar { height: 100%; width: 100%; background: linear-gradient(90deg, #ff4d6d, #ffb703); transition: width .25s; }
+  #hp span { font-weight: 800; text-shadow: 0 2px 4px #000; }
+  #help { position: fixed; right: 16px; bottom: 14px; font-size: 12px; opacity: .55; text-align: right; pointer-events: none; text-shadow: 0 1px 3px #000; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three/three.module.min.js",
+  "three/addons/": "./vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<div id="start">
+  <div>
+    <h1>スケッチタウン</h1>
+    <p>Sketch Town · Future World Singapore</p>
+    <p>えをかいて、まちにおくろう! Draw it, scan it, watch it come alive!</p>
+    <div class="go">▶ タッチしてスタート / Click to start</div>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="hp"><span>🐉 DRAGON HP</span><div class="track"><div id="hpBar"></div></div></div>
+<div id="hud"></div>
+<div id="help">クリック: タッチ · ドラッグ: まわす · ホイール: ズーム<br>Click: poke · Drag: orbit · Wheel: zoom · [D] dragon [N] night [T] tour [F] fullscreen [H] home</div>
+<script type="module" src="js/wall/main.js"></script>
+</body>
+</html>

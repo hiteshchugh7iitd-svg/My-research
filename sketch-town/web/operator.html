@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch Town Operator</title>
+<link rel="stylesheet" href="css/operator.css">
+</head>
+<body>
+<header>
+  <div class="brand"><span class="logo">✏️</span> スケッチタウン <small>Sketch Town · Operator &amp; Scanner Station</small></div>
+  <div class="pills">
+    <span id="pillServer" class="pill bad">● サーバー Server</span>
+    <span id="pillDisplays" class="pill">🖥 0 displays</span>
+    <button id="btnWall" class="primary">🌏 3Dウォールを開く Open 3D Wall</button>
+  </div>
+</header>
+
+<main>
+  <aside class="col left">
+    <h2>1. えらぶ Choose</h2>
+    <div id="templateList" class="templates"></div>
+    <h2>どうぐ Tools</h2>
+    <div class="tools" id="tools">
+      <button data-tool="crayon" class="on">🖍 クレヨン</button>
+      <button data-tool="marker">🖊 ペン</button>
+      <button data-tool="rainbow">🌈 にじ</button>
+      <button data-tool="fill">🪣 ぬりつぶし</button>
+      <button data-tool="eraser">🧽 けしゴム</button>
+    </div>
+    <div class="sizes" id="sizes">
+      <button data-size="10">•</button><button data-size="24" class="on">●</button><button data-size="48">⬤</button>
+    </div>
+    <div id="palette" class="palette"></div>
+    <div class="row">
+      <button id="btnUndo">↶ もどす Undo</button>
+      <button id="btnClear">🗑 ぜんぶけす Clear</button>
+    </div>
+  </aside>
+
+  <section class="col center">
+    <h2>2. ぬる Color <span class="hint">マウスでぬってね · draw with the mouse, or color a printed sheet and scan it</span></h2>
+    <div class="bed" id="bed">
+      <canvas id="canvas" width="1600" height="1200"></canvas>
+      <img id="resultPreview" alt="">
+      <div class="lightbar" id="lightbar"></div>
+      <div class="bedmsg" id="bedMsg"></div>
+    </div>
+    <button id="btnSend" class="send">✨ 3. スキャンしておくる! Scan &amp; Send to the City ✨</button>
+  </section>
+
+  <aside class="col right">
+    <details open>
+      <summary>🖨 スキャナー Scanner (hot folder)</summary>
+      <p class="small">スキャナーの保存先をこのフォルダにすると、自動で街に登場します。<br>Set your scanner app (Epson ScanSmart, Canon IJ Scan Utility, Brother iPrint&amp;Scan, ScanSnap Home…) to save JPG/PNG into:</p>
+      <code id="watchPath">…</code>
+      <div class="row">
+        <button id="btnWia" title="Windows only, needs pywin32">📠 いますぐスキャン Scan now (WIA)</button>
+      </div>
+      <div class="row">
+        <button id="btnPickFolder">📂 別のフォルダを見張る Watch another folder (browser)</button>
+      </div>
+      <p class="small" id="folderStatus"></p>
+      <label class="filebtn">🖼 画像をえらぶ Upload scan/photo<input type="file" id="fileInput" accept="image/*" multiple></label>
+    </details>
+
+    <details>
+      <summary>📷 カメラ Overhead camera</summary>
+      <div class="cam">
+        <video id="video" playsinline muted></video>
+        <div class="guide"><i></i><i></i><i></i><i></i><span>紙をわくに合わせてね<br>Fit the sheet in the frame</span></div>
+      </div>
+      <div class="row">
+        <select id="camSelect"></select>
+        <button id="btnCam">▶ カメラON</button>
+        <button id="btnCapture" disabled>📸 とる Capture</button>
+      </div>
+    </details>
+
+    <details>
+      <summary>🧾 ぬりえ印刷 Print coloring sheets</summary>
+      <p class="small">A4よこ・4すみの■マークが大事です (A4 landscape, keep "fit to page" off or on — the corner marks handle scaling).</p>
+      <div class="row">
+        <button id="btnPrintOne">🖨 このぬりえ This sheet</button>
+        <button id="btnPrintAll">🖨 ぜんぶ (6まい) All 6</button>
+      </div>
+      <div class="row"><button id="btnDownload">⬇ PNGで保存 Save PNG</button></div>
+    </details>
+
+    <details open>
+      <summary>🐉 ウォール操作 Wall controls</summary>
+      <div class="row">
+        <button id="btnDragon" class="danger">🐉 ドラゴン出現! Dragon!</button>
+        <button id="btnDemo">🎲 サンプル Demo ×6</button>
+      </div>
+      <div class="row">
+        <button id="btnNight">🌙/☀ 昼夜 Day/Night</button>
+        <button id="btnTour">🎥 カメラ旋回 Camera tour</button>
+      </div>
+      <div class="row">
+        <label class="small">🔊 <input type="range" id="volume" min="0" max="100" value="70"></label>
+        <button id="btnClearWall">🧹 リセット Clear city</button>
+      </div>
+    </details>
+
+    <h3>きろく Activity</h3>
+    <ul id="log" class="log"></ul>
+  </aside>
+</main>
+
+<script type="module" src="js/operator.js"></script>
+</body>
+</html>
