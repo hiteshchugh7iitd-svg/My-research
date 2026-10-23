@@ -124,7 +124,7 @@ class UFO {
 
     if (k >= 1) {
       this.t = 0;
-      if (this.phase === 'in') this.phase = 'beam';
+      if (this.phase === 'in') { this.phase = 'beam'; this.app.onArrive?.(a); }
       else if (this.phase === 'beam') this.phase = 'lower';
       else if (this.phase === 'lower') {
         this.phase = 'off';

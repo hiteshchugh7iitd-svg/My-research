@@ -64,6 +64,19 @@ For a class activity, a sheet-fed scanner is the most fun: children feed their o
 watch the UFO bring it in about 3 seconds later. A document camera costs nothing extra. The software
 removes shadows and corrects the angle, so the camera doesn't have to be perfectly straight.
 
+## 2b. Phones, tablets and a second laptop (in parallel)
+
+Start the PC with **`start_windows_with_phone.bat`** (same as the normal launcher, but reachable on the
+school Wi-Fi; allow it when Windows Firewall asks). The PC keeps the 3D wall on the projector, and:
+
+* **Phone/tablet as remote:** open *📱 Phone remote* on the operator station and scan **QR ①**. The phone
+  shows the live city at the top and the controls below. **📸 Take photo** sends a coloured sheet.
+  (Live camera preview needs a secure page, so phones use the camera app through Take photo instead.)
+* **Second screen:** scan **QR ②** on another laptop or tablet to run another copy of the 3D wall. Every
+  drawing appears on all screens, in the same place.
+* **One screen only:** the **🎛 Controls** button on the wall slides the operator station in over the
+  running city.
+
 ## 3. Connect the scanner (hot folder)
 
 Any scanner works if its app can **save JPG/PNG to a folder automatically**:
@@ -74,7 +87,8 @@ Any scanner works if its app can **save JPG/PNG to a folder automatically**:
 * **ScanSnap** Home → profile → *Save to* → folder
 * **Windows Fax and Scan** / any app that saves images
 
-Set the scanner to 150–300 dpi and color. Scan → the file appears in the folder → about one
+Set the scanner to 150–300 dpi and color. If pale crayon (yellow, pink, light blue) disappears, raise
+*🎨 Light-colour sensitivity* on the operator station (1–5, default 4). Scan → the file appears in the folder → about one
 second later the operator station plays the light-bar sweep and chime, and a UFO delivers
 the drawing to the wall. If the scanner saves somewhere else, start with `--watch "that folder"`.
 
@@ -138,7 +152,7 @@ the outline is cut away, so the 3D models have no white boxes around them.
 | click the **dragon** | the nearest jets/trucks fire energy beams at it |
 | click a jet/truck during the dragon attack | that vehicle fires at the dragon |
 | drag / wheel | orbit / zoom the camera |
-| **D** dragon · **N** day/night · **T** camera tour · **S** sample drawings · **H** home · **F** fullscreen · **M** mute · **Q** quality · **B** brightness | |
+| **D** dragon · **N** sky (dusk/night/day) · **T** camera tour · **S** sample drawings · **H** home · **F** fullscreen · **M** mute · **Q** quality · **B** brightness · **V** camera view · **P** projector colours · **C** follow new drawings | |
 
 The operator station's *Wall controls* panel has the same buttons, so a teacher can run the
 wall from the main screen with the mouse. Drawings are saved in `scans/textures` and come back

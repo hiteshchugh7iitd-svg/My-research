@@ -2,6 +2,7 @@ import { loadTemplates, drawSheet, drawMarkers, drawLabels, drawOutline, renderP
 import { AudioEngine } from './audio.js';
 
 const $ = id => document.getElementById(id);
+const EMBED = new URLSearchParams(location.search).has('embed'); // shown inside the wall's control drawer
 const data = await loadTemplates();
 const { sheet } = data;
 const audio = new AudioEngine();
@@ -236,6 +237,8 @@ async function refreshStatus() {
     $('watchPath').textContent = s.watch;
     $('pillDisplays').textContent = `🖥 ${s.displays} displays`;
     if (!s.wia) { $('btnWia').disabled = true; $('btnWia').title = 'Windows only (pip install pywin32)'; }
+    if (document.activeElement !== $('sens')) { $('sens').value = s.sensitivity; $('sensVal').textContent = s.sensitivity; }
+    renderPhonePanel(s.lan || []);
     if (!refreshStatus.logged) { s.log.forEach(e => addLog(e.level, e.text, e.time)); refreshStatus.logged = true; }
   } catch { /* server offline, pill shows it */ }
 }
@@ -283,6 +286,55 @@ $('fileInput').onchange = async e => {
   for (const f of e.target.files) await postScan(f, 'upload', f.name);
   e.target.value = '';
 };
+// phones: opens the camera app directly (works over plain http on the school Wi-Fi)
+$('photoInput').onchange = async e => {
+  const f = e.target.files[0];
+  if (f) { await sweep(); await postScan(f, 'phone', 'photo'); }
+  e.target.value = '';
+};
+$('sens').oninput = e => { $('sensVal').textContent = e.target.value; };
+$('sens').onchange = e => bus.command({ type: 'sensitivity', value: +e.target.value });
+
+// ------------------------------------------------------------ phone remote
+function renderPhonePanel(urls) {
+  const key = urls.join(' ');
+  if (renderPhonePanel.last === key) return;
+  renderPhonePanel.last = key;
+  const body = $('phoneBody');
+  if (!urls.length) {
+    body.innerHTML = `スマホから操作するには <b>start_windows_with_phone.bat</b> で起動してください。<br>
+      To use a phone or tablet as the remote, start the app with <b>start_windows_with_phone.bat</b>
+      (PC and phone on the same Wi-Fi).`;
+    return;
+  }
+  const url = urls[0];
+  const qrImg = u => {
+    if (!window.qrcode) return '';
+    const qr = window.qrcode(0, 'M'); qr.addData(u); qr.make();
+    return qr.createImgTag(5, 0);
+  };
+  body.innerHTML = `
+    <b>① リモコン Remote control</b> (スマホ・タブレット phone / tablet)
+    ${qrImg(url)}<code>${url}</code>
+    <p>スマホでは「📸 写真をとる」でぬりえを撮影して送れます。上の 📺 で街のようすも見られます。<br>
+    On the phone, <b>📸 Take photo</b> sends a sheet. The 3D wall on this PC keeps running on the projector.</p>
+    <b>② 2台目のスクリーン Second screen</b> (ノートPC・タブレット another laptop / tablet)
+    ${qrImg(url + 'wall.html')}<code>${url}wall.html</code>
+    <p>同じ街がもう1台でも動きます。絵は全部の画面に同じ場所で登場します。<br>
+    Every screen shows the same city; each new drawing appears on all of them, in the same place.</p>
+    ${urls.length > 1 ? `<p>ほかのアドレス Other addresses: ${urls.slice(1).join(' ')}</p>` : ''}`;
+}
+
+// ------------------------------------------------------------- live view
+// A small live copy of the 3D city inside this page, so a phone/tablet (or a single
+// screen) shows the cars moving while you scan and upload.
+function setLive(on) {
+  $('live').hidden = !on;
+  $('liveFrame').src = on ? '/wall.html?embed=1' : 'about:blank';
+  $('btnLive').classList.toggle('on', on);
+}
+$('btnLive').onclick = () => setLive($('live').hidden);
+$('btnLiveClose').onclick = () => setLive(false);
 
 // ------------------------------------------------------- manual override
 for (const t of data.templates) $('overrideTpl').add(new Option(`${t.name_ja} ${t.name_en}`, t.id));
@@ -384,24 +436,52 @@ $('btnCam').onclick = async () => {
   try {
     const id = $('camSelect').value;
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { deviceId: id ? { exact: id } : undefined, width: { ideal: 1920 }, height: { ideal: 1440 } },
+      video: { deviceId: id ? { exact: id } : undefined, width: { ideal: 2592 }, height: { ideal: 1944 } },
     });
     $('video').srcObject = stream;
     await $('video').play();
+    setupExposure(stream.getVideoTracks()[0]);
     $('btnCam').textContent = '■ カメラOFF';
     $('btnCapture').disabled = false;
     listCams();
   } catch (e) { addLog('error', 'camera: ' + e.message); }
 };
+// Camera exposure: many document cameras over-expose, which bleaches pale crayon.
+function setupExposure(track) {
+  const cap = track.getCapabilities?.() || {};
+  const ec = cap.exposureCompensation;
+  $('expRow').hidden = !ec;
+  if (!ec) return;
+  Object.assign($('camExp'), { min: ec.min, max: ec.max, step: ec.step || 0.1, value: track.getSettings().exposureCompensation ?? 0 });
+  $('camExp').oninput = e => track.applyConstraints({ advanced: [{ exposureCompensation: +e.target.value }] }).catch(() => {});
+}
+
+// Average several video frames: camera noise drops a lot, so pale colours survive.
+async function grabAveraged(v, frames = 8) {
+  const w = v.videoWidth, h = v.videoHeight;
+  const c = Object.assign(document.createElement('canvas'), { width: w, height: h });
+  const g = c.getContext('2d', { willReadFrequently: true });
+  const acc = new Float32Array(w * h * 4);
+  for (let i = 0; i < frames; i++) {
+    g.drawImage(v, 0, 0);
+    const d = g.getImageData(0, 0, w, h).data;
+    for (let k = 0; k < d.length; k++) acc[k] += d[k];
+    await new Promise(r => setTimeout(r, 40));
+  }
+  const out = g.createImageData(w, h);
+  for (let k = 0; k < acc.length; k++) out.data[k] = acc[k] / frames;
+  g.putImageData(out, 0, 0);
+  return c;
+}
 $('btnCapture').onclick = async () => {
-  const v = $('video');
-  const c = Object.assign(document.createElement('canvas'), { width: v.videoWidth, height: v.videoHeight });
-  c.getContext('2d').drawImage(v, 0, 0);
-  await sweep();
-  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
-  postScan(blob, 'webcam', 'camera');
+  $('btnCapture').disabled = true;
+  const [c] = await Promise.all([grabAveraged($('video')), sweep()]);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95));
+  await postScan(blob, 'webcam', 'camera');
+  $('btnCapture').disabled = false;
 };
 if (navigator.mediaDevices) listCams().catch(() => {});
+else $('btnCam').title = 'スマホでは「📸 写真をとる」を使ってください (use Take photo on phones)';
 
 // ------------------------------------------------------------------ print
 function printSheets(tpls) {
@@ -436,12 +516,17 @@ $('btnWall').onclick = async () => {
   } catch { /* permission denied: plain window */ }
   window.open('/wall.html', 'sketchtown_wall', features);
 };
+if (EMBED) document.body.classList.add('embed');
+if (!EMBED && window.matchMedia('(max-width: 800px)').matches) setLive(true); // phones: city on top by default
 $('btnDragon').onclick = () => bus.command({ type: 'dragon' });
 $('btnDemo').onclick = () => bus.command({ type: 'demo', count: 6 });
 $('btnNight').onclick = () => bus.command({ type: 'daynight' });
 $('btnTour').onclick = () => bus.command({ type: 'tour' });
 $('btnBright').onclick = () => bus.command({ type: 'brightness' });
 $('btnQuality').onclick = () => bus.command({ type: 'quality' });
+$('btnView').onclick = () => bus.command({ type: 'view' });
+$('btnVivid').onclick = () => bus.command({ type: 'vivid' });
+$('btnFollow').onclick = () => bus.command({ type: 'follow' });
 $('volume').oninput = e => bus.command({ type: 'volume', value: +e.target.value / 100 });
 $('btnClearWall').onclick = async () => {
   if (!confirm('街の絵をぜんぶ消しますか? Remove every drawing from the city (and the saved gallery)?')) return;

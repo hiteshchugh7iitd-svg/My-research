@@ -13,6 +13,7 @@ import json
 import mimetypes
 import os
 import queue
+import socket
 import threading
 import time
 import uuid
@@ -31,6 +32,7 @@ SCANS = os.path.join(ROOT, "scans")
 TEXTURES = os.path.join(SCANS, "textures")
 GALLERY = os.path.join(SCANS, "gallery.json")
 SEEN = os.path.join(SCANS, "seen.json")
+SETTINGS_PATH = os.path.join(SCANS, "settings.json")
 IMAGE_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".pdf")
 MAX_BODY = 40 * 1024 * 1024
 
@@ -79,6 +81,7 @@ class Hub:
 
 HUB = Hub()
 GALLERY_LOCK = threading.Lock()
+SETTINGS = {"sensitivity": 4}  # light-colour sensitivity 1..5, set from the operator station
 
 
 def load_json(path, default):
@@ -99,7 +102,7 @@ def save_json(path, data):
 def ingest(img, source, template_id=None, registered=False, boost=True, label="", force=False, corners=None):
     """Run the pipeline on a decoded image, store the texture and announce it."""
     rgba, info = pipeline.process(img, template_id, registered=registered, boost=boost,
-                                  force_template=force, corners=corners)
+                                  force_template=force, corners=corners, sensitivity=SETTINGS["sensitivity"])
     sid = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6]
     pipeline.save_png(os.path.join(TEXTURES, sid + ".png"), rgba)
     item = {"id": sid, "url": f"/textures/{sid}.png", "source": source, "label": label, "time": time.time(), **info}
@@ -203,6 +206,27 @@ class FolderWatcher(threading.Thread):
                 pass  # already logged; the operator can retry from the manual panel
 
 
+def lan_urls(addr):
+    """Addresses phones/tablets on the same Wi-Fi can open (only when started with --host 0.0.0.0)."""
+    host, port = addr[0], addr[1]
+    if host not in ("0.0.0.0", "::"):
+        return []
+    ips = set()
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("10.255.255.255", 1))  # no packet is sent; just picks the outgoing interface
+        ips.add(s.getsockname()[0])
+        s.close()
+    except OSError:
+        pass
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ips.add(info[4][0])
+    except OSError:
+        pass
+    return [f"http://{ip}:{port}/" for ip in sorted(ips) if not ip.startswith("127.")]
+
+
 # ------------------------------------------------------- WIA (Windows)
 def wia_scan(dpi=200):
     """Trigger a flatbed scan directly through Windows Image Acquisition (optional)."""
@@ -285,6 +309,8 @@ class Handler(BaseHTTPRequestHandler):
                 "log": HUB.log[-20:],
                 "defaultTemplate": self.config["template"],
                 "wia": os.name == "nt",
+                "sensitivity": SETTINGS["sensitivity"],
+                "lan": lan_urls(self.server.server_address),
             })
         if p == "/api/inbox":
             return self.send_json({"folder": self.watcher.folder, "files": self.watcher.listing()})
@@ -360,6 +386,9 @@ class Handler(BaseHTTPRequestHandler):
                 cmd = json.loads(self.read_body() or b"{}")
                 if cmd.get("type") == "template":
                     self.config["template"] = cmd.get("template", "truck")
+                if cmd.get("type") == "sensitivity":
+                    SETTINGS["sensitivity"] = int(min(5, max(1, int(cmd.get("value", 4)))))
+                    save_json(SETTINGS_PATH, SETTINGS)
                 return self.send_json(HUB.publish({"type": "command", "command": cmd}))
             if p == "/api/clear-gallery":
                 with GALLERY_LOCK:
@@ -408,6 +437,7 @@ def main():
     args = ap.parse_args()
 
     os.makedirs(TEXTURES, exist_ok=True)
+    SETTINGS.update(load_json(SETTINGS_PATH, {}))
     Handler.config = {"watch": os.path.abspath(args.watch), "template": args.template}
     Handler.watcher = FolderWatcher(Handler.config["watch"], lambda: Handler.config["template"])
     Handler.watcher.start()
@@ -420,6 +450,8 @@ def main():
     print(f"  Operator station : {url}")
     print(f"  Projection wall  : {url}wall.html")
     print(f"  Scanner folder   : {Handler.config['watch']}")
+    for u in lan_urls(httpd.server_address):
+        print(f"  Phone / tablet   : {u}")
     print("  Stop with Ctrl+C")
     print("=" * 60, flush=True)
     if not args.no_browser:

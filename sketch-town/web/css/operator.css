@@ -123,4 +123,22 @@ select { font: inherit; font-size: 13px; border-radius: 10px; border: 2px solid 
 #cornerMarks span { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
   background: #ff3b6b; color: #fff; font: bold 14px/26px sans-serif; text-align: center; pointer-events: none; box-shadow: 0 0 0 3px #fff; }
 .bed.drop { outline: 4px dashed #4cc9f0; outline-offset: 4px; }
+#live { position: relative; margin: 10px 14px 0; height: 42vh; border-radius: 14px; overflow: hidden; background: #050816; border: 2px solid var(--line); }
+#live iframe { width: 100%; height: 100%; border: 0; display: block; }
+#btnLiveClose { position: absolute; top: 8px; right: 8px; padding: 4px 10px; background: rgba(255,255,255,.85); }
+button.pill { font-size: 13px; padding: 5px 12px; border-radius: 99px; }
+.sens { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+#phoneBody img { width: 180px; height: 180px; image-rendering: pixelated; display: block; margin: 8px auto; background: #fff; padding: 8px; border-radius: 10px; }
+#phoneBody code { text-align: center; font-size: 14px; }
+/* phones: keep the live city on screen while scrolling through the scanner controls */
+@media (max-width: 800px) {
+  header { padding: 8px 10px; }
+  .brand small { display: none; }
+  #live { position: sticky; top: 0; z-index: 20; height: 34vh; margin: 0; border-radius: 0; border: 0; }
+  main { padding: 8px; gap: 8px; }
+  .send { font-size: 18px; padding: 12px; }
+}
+/* inside the wall's control drawer */
+body.embed header .brand small, body.embed #btnWall, body.embed #btnLive, body.embed #live { display: none !important; }
+body.embed main { grid-template-columns: 1fr; padding: 8px; }
 @media print { body * { display: none !important; } }

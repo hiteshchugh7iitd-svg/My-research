@@ -71,6 +71,8 @@
       書画カメラを使う場合は不要 <span class="en">(not needed if you use a document camera)</span>.</li>
     <li><b>ぬりえを印刷</b>: 操作画面 →「🧾 ぬりえ印刷」→「ぜんぶ (12まい)」。必要な枚数をコピー。<br>
       <span class="en">Print sheets: Operator → Print coloring sheets → All 12, then photocopy as many as you need. Photocopies work.</span></li>
+    <li><b>スマホで操作したい場合</b>: <code>start_windows_with_phone.bat</code> で起動。Windowsのファイアウォールの確認が出たら「プライベート ネットワーク」で<b>許可</b>。<br>
+      <span class="en">To use phones / tablets / another laptop: start with start_windows_with_phone.bat and click Allow (Private networks) when Windows Firewall asks.</span></li>
     <li><b>テスト</b>: 1枚ぬってスキャンし、「きろく Activity」に <b>via fiducials</b> と出ればOK。<br>
       <span class="en">Test: color one sheet and scan it. The activity log should say "via fiducials".</span></li>
   </ol>
@@ -87,7 +89,8 @@
     <li>右上が <b>「● サーバーOK」</b>(緑) になっていることを確認。<span class="en">Check the top-right pill is green "Server OK".</span></li>
     <li>「🌏 3Dウォールを開く」→ ウォールがプロジェクターに出る (出なければウィンドウをドラッグ)。<span class="en">Click Open 3D Wall. If it doesn't appear on the projector, drag the window there.</span></li>
     <li>マウスをプロジェクター側へ移動 → ウォールを<b>1回クリック</b> (音がスタート) → <kbd>F</kbd> で全画面。<span class="en">Click the wall once to start the sound, then press F for fullscreen.</span></li>
-    <li>暗く見えたら「☀ 明るさ」または <kbd>B</kbd>。明るい教室なら「🌙/☀ 昼夜」で昼モード。<span class="en">If the picture looks dark, press B or switch to day mode.</span></li>
+    <li>標準は「🌆 ゆうがた」+「🎨 プロジェクター色」(あざやか)。暗ければ <kbd>B</kbd> (明るさ) や <kbd>N</kbd> (空: ゆうがた→よる→ひる)。<span class="en">The default is the bright dusk sky with projector colours. Press B to brighten, N to change the sky.</span></li>
+    <li>絵が小さく見えたら <kbd>V</kbd> (視点: まち/ぜんたい/どうろ/うみ)。新しい絵が来るとカメラが自動で追いかけます (<kbd>C</kbd> でON/OFF)。<span class="en">If drawings look small, press V to change the view. The camera follows each new drawing as it arrives (C toggles this).</span></li>
     <li>スキャナーの電源ON、ぬりえ・クレヨンを配る。<span class="en">Turn on the scanner and hand out sheets and crayons.</span></li>
   </ul>
 
@@ -109,7 +112,16 @@
     <li>左でぬりえを選ぶ → マウスでぬる (クレヨン・にじ・ぬりつぶし・けしゴム)。<span class="en">Pick a template and draw with the mouse.</span></li>
     <li>「✨ スキャンしておくる!」を押す。<span class="en">Press Scan &amp; Send.</span></li>
   </ol>
-  <h3>D. ドラゴンイベント Dragon event (5 min, great for the finale)</h3>
+  <h3>D. スマホ・別のノートPCで同時に使う Phones &amp; other laptops in parallel</h3>
+  <ol>
+    <li>PC は <code>start_windows_with_phone.bat</code> で起動。プロジェクターには3Dウォールを出したままにする。<span class="en">Start the PC with start_windows_with_phone.bat and leave the 3D wall on the projector.</span></li>
+    <li>操作画面「📱 スマホ・タブレット」の <b>QRコード①</b> をスマホで読む → スマホがリモコンになる (上に街のライブ映像、下に操作)。<span class="en">Scan QR ① with a phone: it becomes the remote, with the live city on top and the controls below.</span></li>
+    <li>スマホの「📸 写真をとる」でぬりえを撮影 → そのまま街に登場。<span class="en">On the phone, Take photo sends a coloured sheet straight into the city.</span></li>
+    <li><b>QRコード②</b> を別のノートPC・タブレットで開くと、同じ街の2台目のスクリーンになる。<span class="en">Open QR ② on another laptop or tablet to get a second screen of the same city.</span></li>
+    <li>PC 1台だけの時は、ウォール右上の「🎛 そうさ」で操作パネルを出せます (街は動いたまま)。<span class="en">With only one screen, the Controls button on the wall slides the operator panel in while the city keeps moving.</span></li>
+  </ol>
+  <p class="small en">The PC and the phones must be on the same Wi-Fi. School networks sometimes block devices from reaching each other; if the QR address doesn't open, ask the IT staff or use a mobile router.</p>
+  <h3>E. ドラゴンイベント Dragon event (5 min, great for the finale)</h3>
   <ol>
     <li>「🐉 ドラゴン出現!」または <kbd>D</kbd>。<span class="en">Press Dragon or the D key.</span></li>
     <li>みんなでドラゴンや車・ジェット機をクリック → ビームでHPを減らす。<span class="en">Everyone clicks the dragon, cars or jets to fire beams at it.</span></li>
@@ -136,6 +148,12 @@
     <tr><td>スマホ写真・メールの画像を使いたい<br><span class="en">Use a phone photo / emailed image</span></td>
       <td>操作画面にドラッグ&amp;ドロップ、または「🖼 画像をえらぶ」。四隅を指定したい時は「📐 画像をえらんで四隅を指定」。<br>
       <span class="en">Drag the file onto the drawing area, or use Upload or Pick an image &amp; mark corners.</span></td></tr>
+    <tr><td>うすい色 (きいろ・ピンク・みずいろ) が消える<br><span class="en">Pale colours (yellow, pink, light blue) disappear</span></td>
+      <td>「🎨 うすい色の感度」を 5 へ。カメラなら「☀ カメラの明るさ」を少し下げる (白とびを防ぐ)。紙のよごれが色になったら感度を下げる。<br>
+      <span class="en">Raise Light-colour sensitivity to 5. With a camera, lower Camera exposure a little. If paper smudges turn into colour, lower the sensitivity.</span></td></tr>
+    <tr><td>スマホでQRのページが開かない<br><span class="en">The QR address doesn't open on the phone</span></td>
+      <td>PCを <code>start_windows_with_phone.bat</code> で起動したか、同じWi-Fiか、ファイアウォールで「許可」したか確認。<br>
+      <span class="en">Check the PC was started with start_windows_with_phone.bat, both are on the same Wi-Fi, and the firewall was allowed.</span></td></tr>
     <tr><td>音が出ない <span class="en">No sound</span></td>
       <td>ウォールを1回クリック。PCの音量とスピーカーを確認。<kbd>M</kbd> はミュート切替。<span class="en">Click the wall once, check the volume. M toggles mute.</span></td></tr>
     <tr><td>動きがカクカク <span class="en">Animation stutters</span></td>
@@ -157,8 +175,9 @@
 
   <h2>6. キーボード Shortcuts (3D wall)</h2>
   <table>
-    <tr><td><kbd>D</kbd> ドラゴン Dragon</td><td><kbd>N</kbd> 昼/夜 Day/Night</td><td><kbd>T</kbd> カメラ旋回 Tour</td><td><kbd>H</kbd> 元の視点 Home</td></tr>
+    <tr><td><kbd>D</kbd> ドラゴン Dragon</td><td><kbd>N</kbd> 空 ゆうがた/よる/ひる Sky</td><td><kbd>T</kbd> カメラ旋回 Tour</td><td><kbd>H</kbd> 元の視点 Home</td></tr>
     <tr><td><kbd>F</kbd> 全画面 Fullscreen</td><td><kbd>B</kbd> 明るさ Brightness</td><td><kbd>Q</kbd> 画質 Quality</td><td><kbd>M</kbd> ミュート Mute</td></tr>
+    <tr><td><kbd>V</kbd> 視点 View</td><td><kbd>P</kbd> プロジェクター色 Projector colours</td><td><kbd>C</kbd> 追いかけ Follow new</td><td><kbd>N</kbd> 空 Sky</td></tr>
     <tr><td colspan="4"><kbd>S</kbd> サンプルの絵 Sample drawings · マウス: クリック=タッチ、ドラッグ=回転、ホイール=ズーム <span class="en">(click = poke, drag = orbit, wheel = zoom)</span></td></tr>
   </table>
   <div class="tip">💡 コツ Tips: 太いクレヨン・マーカーがきれいに出ます。うすい鉛筆は薄くなります。1回の授業で1人1〜3枚がちょうどよい量です。<br>

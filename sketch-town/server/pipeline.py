@@ -222,28 +222,45 @@ def flatten_light(sheet_bgr, tpl):
     return np.clip(sheet_bgr.astype(np.float32) / np.maximum(bg, 30) * 245, 0, 255).astype(np.uint8)
 
 
-def enhance(sheet_bgr, boost=True):
+# light-colour sensitivity 1 (only strong colours) .. 5 (picks up the palest crayon)
+SENS_THRESHOLD = {1: 13.0, 2: 9.5, 3: 7.0, 4: 5.0, 5: 3.6}
+
+
+def enhance(sheet_bgr, boost=True, sensitivity=3):
     img = sheet_bgr.astype(np.float32)
     # white-balance on the paper: brightest pixels become pure white
     white = np.percentile(img.reshape(-1, 3), 96, axis=0)
     img = np.clip(img * (255.0 / np.maximum(white, 60)), 0, 255).astype(np.uint8)
     if not boost:
         return img
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
-    s, v = hsv[:, :, 1], hsv[:, :, 2]
-    colored = s > 28
-    s[colored] = np.clip(s[colored] * 1.7 + 25, 0, 255)
-    v[colored] = np.clip(v[colored] * 1.06 + 6, 0, 255)
-    paper = (~colored) & (v > 185)  # faint scanner noise on blank paper -> clean white
-    s[paper] = 0
-    v[paper] = 255
-    out = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+    # Work in Lab: "how coloured" (chroma) is separate from "how bright", so pale
+    # yellow / pink / sky-blue crayon is found even though it is almost as bright as paper.
+    sens = int(min(5, max(1, sensitivity)))
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB).astype(np.float32)
+    L, a, b = lab[:, :, 0], lab[:, :, 1] - 128, lab[:, :, 2] - 128
+    chroma = cv2.GaussianBlur(np.hypot(a, b), (0, 0), 2.0)  # smooth crayon grain and camera noise
+    thr = SENS_THRESHOLD[sens]
+    w = np.clip((chroma - thr * 0.7) / (thr * 0.6), 0, 1)  # 0 = paper, 1 = coloured, soft edge
+    # pale colours get a big gain, strong colours a small one
+    gain = np.minimum(4.0, 1.0 + (0.6 + 0.25 * sens) * 22.0 / (chroma + 12.0))
+    g = 1 + (gain - 1) * w
+    a, b = a * g, b * g
+    # pale pigment is nearly paper-bright: darken it a little so it reads on a projector
+    L = L - w * np.clip((L - 120) * 0.2, 0, 26)
+    # blank paper (not coloured, not a pencil/ink line) becomes clean white
+    Lref = np.percentile(L, 92)
+    ink = np.clip((Lref - cv2.GaussianBlur(L, (0, 0), 1.2) - 18) / 20, 0, 1)
+    paper = (1 - w) * (1 - ink)
+    L = L * (1 - paper) + 255 * paper
+    a, b = a * (1 - paper), b * (1 - paper)
+    lab = np.dstack([L, a + 128, b + 128])
+    out = cv2.cvtColor(np.clip(lab, 0, 255).astype(np.uint8), cv2.COLOR_LAB2BGR)
     # crayon strokes leave white speckles: a light median closes the texture
     return cv2.medianBlur(out, 3)
 
 
-def cutout(sheet_bgr, tpl, boost=True):
-    color = enhance(flatten_light(sheet_bgr, tpl) if boost else sheet_bgr, boost)
+def cutout(sheet_bgr, tpl, boost=True, sensitivity=3):
+    color = enhance(flatten_light(sheet_bgr, tpl) if boost else sheet_bgr, boost, sensitivity)
     color = cv2.resize(color, (OUT_W, OUT_H), interpolation=cv2.INTER_AREA)
     alpha = silhouette_mask(tpl, OUT_W, OUT_H)
     return np.dstack([color, alpha])
@@ -260,7 +277,7 @@ def dominant_color(rgba):
     return "#%02x%02x%02x" % (r, g, b)
 
 
-def process(img, template_id=None, registered=False, boost=True, force_template=False, corners=None):
+def process(img, template_id=None, registered=False, boost=True, force_template=False, corners=None, sensitivity=3):
     """Return (rgba, info). `registered=True` means img is already the canonical sheet.
     `force_template=True` uses `template_id` even if the sheet's code says otherwise
     (manual override); `corners` are operator-clicked corner-square positions."""
@@ -276,7 +293,7 @@ def process(img, template_id=None, registered=False, boost=True, force_template=
     detected = tpl is not None
     if tpl is None:
         tpl = TEMPLATES.get(template_id) or TEMPLATES["truck"]
-    rgba = cutout(sheet, tpl, boost)
+    rgba = cutout(sheet, tpl, boost, sensitivity)
     return rgba, {
         "template": tpl["id"],
         "kind": tpl["kind"],

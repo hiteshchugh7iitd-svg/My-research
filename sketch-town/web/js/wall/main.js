@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { loadTemplates, makeDemoTexture, Bus } from '../common.js';
 import { AudioEngine } from '../audio.js';
 import { buildWorld } from './world.js';
@@ -13,7 +14,17 @@ import { Dragon } from './dragon.js';
 import { Particles, Beams } from './fx.js';
 
 const LIMITS = { vehicle: 36, building: 30, jet: 10, boat: 10, fish: 14, rocket: 6, heli: 8 };
-const HOME = { pos: new THREE.Vector3(0, 42, 102), target: new THREE.Vector3(0, 7, -10) };
+// camera views: [V] / operator button cycles them. "city" is the default, closer than the old wide shot.
+const VIEWS = [
+  { ja: 'まち', en: 'City', pos: [-6, 30, 70], target: [-6, 5, -2] },
+  { ja: 'ぜんたい', en: 'Wide', pos: [0, 42, 102], target: [0, 7, -10] },
+  { ja: 'どうろ', en: 'Highway', pos: [-30, 20, 46], target: [-14, 6, 6] },
+  { ja: 'うみ', en: 'Bay', pos: [54, 24, 50], target: [62, -1, -8] },
+].map(v => ({ ...v, pos: new THREE.Vector3(...v.pos), target: new THREE.Vector3(...v.target) }));
+let viewIdx = 0;
+const HOME = VIEWS[0];
+const params = new URLSearchParams(location.search);
+const EMBED = params.has('embed'); // small live copy inside the operator page (phone / tablet)
 
 const data = await loadTemplates();
 const $ = id => document.getElementById(id);
@@ -30,7 +41,7 @@ document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x1a1236, 0.0028);
-const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.5, 2000);
+const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.5, 2000);
 camera.position.copy(HOME.pos);
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -58,6 +69,19 @@ composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.85, 0.55, 0.78);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
+// Projector colours: projectors wash out colour and lift blacks, so boost saturation
+// and contrast after tone mapping. [P] toggles it.
+const vivid = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uSat: { value: 1.35 }, uCon: { value: 1.12 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uSat, uCon; varying vec2 vUv;
+    void main(){ vec4 c = texture2D(tDiffuse, vUv);
+      float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+      vec3 col = mix(vec3(l), c.rgb, uSat);
+      col = (col - 0.5) * uCon + 0.5;
+      gl_FragColor = vec4(clamp(col, 0.0, 1.0), c.a); }`,
+});
+composer.addPass(vivid);
 
 // --------------------------------------------------------------- app
 const app = {
@@ -97,13 +121,17 @@ const EXPOSURE = [1.1, 1.4, 1.75];
 let qIdx = store.get('st_quality', null);
 const autoQuality = qIdx === null;
 qIdx ??= 0;
-let expIdx = store.get('st_exposure', 0);
+let expIdx = store.get('st_exposure', 1);
+vivid.enabled = store.get('st_vivid', true);
+let followNew = store.get('st_follow', true);
+if (EMBED) qIdx = 2; // the live copy on a phone stays light
 
 function setQuality(i, announce = true) {
   qIdx = (i + QUALITY.length) % QUALITY.length;
   const q = QUALITY[qIdx];
-  renderer.setPixelRatio(q.ratio);
-  composer.setPixelRatio(q.ratio);
+  const ratio = EMBED ? Math.min(window.devicePixelRatio, 1.25) : q.ratio; // small live view: keep it sharp but light
+  renderer.setPixelRatio(ratio);
+  composer.setPixelRatio(ratio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
   if (renderer.shadowMap.enabled !== q.shadows || moon.shadow.mapSize.x !== q.map) {
@@ -190,7 +218,10 @@ function updateHud() {
 }
 
 // ---------------------------------------------------------- day/night
-let nightTarget = 1;
+// night (stars), dusk (bright pastel, best on projectors) and day
+const THEMES = [{ night: 0.55, label: '🌆 ゆうがた Dusk' }, { night: 1, label: '🌙 よる Night' }, { night: 0, label: '☀ ひる Day' }];
+let themeIdx = store.get('st_theme', 0) % THEMES.length;
+let nightTarget = THEMES[themeIdx].night;
 function applyNight(n) {
   app.world.uniforms.uNight.value = n;
   hemi.intensity = THREE.MathUtils.lerp(1.4, 0.8, n);
@@ -226,7 +257,7 @@ function counterAttack(from, point, dmg) {
   setTimeout(() => app.dragon.damage(dmg, point), 120);
 }
 
-renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; lastInput = performance.now(); controls.autoRotate = touring; });
+renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; lastInput = performance.now(); controls.autoRotate = touring; spot = null; fly = null; controls.enabled = true; });
 renderer.domElement.addEventListener('pointerup', e => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
   downAt = null;
@@ -253,18 +284,53 @@ renderer.domElement.addEventListener('pointermove', e => {
   renderer.domElement.style.cursor = pick(e) ? 'pointer' : 'grab';
 });
 
+// ------------------------------------------------- camera: views & follow
+// Smoothly fly to a view, and when a new drawing arrives follow it for a few
+// seconds so the child sees their own car / fish up close, then return.
+let fly = null, spot = null;
+function flyTo(v) { fly = { pos: v.pos.clone(), target: v.target.clone() }; controls.enabled = false; }
+app.onArrive = actor => {
+  if (!followNew || EMBED) return;
+  const s = actor.parts.size;
+  const dist = THREE.MathUtils.clamp(Math.max(s.w, s.h) * 2.6, 12, 34);
+  const back = { pos: camera.position.clone(), target: controls.target.clone() };
+  spot = { actor, until: performance.now() + 9500, dist, back: spot?.back || back };
+};
+function updateCamera(dt) {
+  const k = 1 - Math.exp(-dt * 2.2);
+  if (spot) {
+    const p = spot.actor.root.getWorldPosition(new THREE.Vector3());
+    if (spot.actor.disposed || performance.now() > spot.until) { const b = spot.back; spot = null; fly = b; return; }
+    const off = camera.position.clone().sub(p).setY(0);
+    if (off.lengthSq() < 1) off.set(0, 0, 1);
+    off.normalize().multiplyScalar(spot.dist).setY(spot.dist * 0.55);
+    controls.enabled = false;
+    camera.position.lerp(p.clone().add(off), k);
+    controls.target.lerp(p.clone().add(new THREE.Vector3(0, 1, 0)), k * 1.5);
+  } else if (fly) {
+    camera.position.lerp(fly.pos, k);
+    controls.target.lerp(fly.target, k);
+    if (camera.position.distanceTo(fly.pos) < 0.3) { fly = null; controls.enabled = true; }
+  }
+}
+camera.position.copy(HOME.pos);
+controls.target.copy(HOME.target);
+
 // --------------------------------------------------------- commands
 let touring = false;
 function command(cmd) {
   switch (cmd.type) {
     case 'dragon': app.dragon.start(); break;
     case 'demo': spawnDemo(cmd.count || 6); break;
-    case 'daynight': nightTarget = nightTarget > 0.5 ? 0 : 1; break;
+    case 'daynight': themeIdx = (themeIdx + 1) % THEMES.length; nightTarget = THEMES[themeIdx].night; store.set('st_theme', themeIdx); app.toast(`${THEMES[themeIdx].label}`, 1800); break;
     case 'tour': touring = !touring; controls.autoRotate = touring; break;
     case 'volume': app.audio.setVolume(cmd.value); break;
     case 'clear': clearAll(); break;
     case 'remove': { const a = app.actors.find(x => x.item.id === cmd.id); if (a) removeActor(a); updateHud(); break; }
-    case 'home': camera.position.copy(HOME.pos); controls.target.copy(HOME.target); break;
+    case 'home': spot = null; viewIdx = 0; flyTo(HOME); break;
+    case 'view': spot = null; viewIdx = (viewIdx + 1) % VIEWS.length; flyTo(VIEWS[viewIdx]); app.toast(`🎥 ${VIEWS[viewIdx].ja} ${VIEWS[viewIdx].en}`, 1500); break;
+    case 'vivid': vivid.enabled = !vivid.enabled; store.set('st_vivid', vivid.enabled); app.toast(`🎨 プロジェクター色 Projector colours: ${vivid.enabled ? 'ON' : 'OFF'}`, 2000); break;
+    case 'follow': followNew = !followNew; store.set('st_follow', followNew); app.toast(`📷 追いかけ Follow new drawings: ${followNew ? 'ON' : 'OFF'}`, 2000); break;
     case 'quality': setQuality(qIdx + 1); store.set('st_quality', qIdx); break;
     case 'brightness': setExposure(expIdx + 1); store.set('st_exposure', expIdx); break;
   }
@@ -279,6 +345,9 @@ window.addEventListener('keydown', e => {
   else if (k === 'h') command({ type: 'home' });
   else if (k === 'q') command({ type: 'quality' });
   else if (k === 'b') command({ type: 'brightness' });
+  else if (k === 'v') command({ type: 'view' });
+  else if (k === 'p') command({ type: 'vivid' });
+  else if (k === 'c') command({ type: 'follow' });
   else if (k === 'm') app.audio.setVolume(app.audio.volume > 0 ? 0 : 0.7);
   else if (k === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
 });
@@ -324,6 +393,32 @@ try {
 } catch { /* no server gallery */ }
 updateHud();
 
+// --------------------------------------------- control drawer on the wall
+// For one-screen setups: the operator station slides in over the running city,
+// so you can scan / upload while the projector keeps showing the animation.
+if (!EMBED) {
+  const btn = Object.assign(document.createElement('button'), { id: 'drawerBtn', textContent: '🎛 そうさ Controls' });
+  const drawer = Object.assign(document.createElement('div'), { id: 'drawer' });
+  drawer.innerHTML = '<iframe title="Operator station"></iframe>';
+  document.body.append(btn, drawer);
+  btn.onclick = () => {
+    const open = !drawer.classList.contains('open');
+    if (open && !drawer.firstChild.src) drawer.firstChild.src = '/?embed=1';
+    drawer.classList.toggle('open', open);
+    document.body.classList.toggle('drawer-open', open);
+    btn.textContent = open ? '✕ とじる Close' : '🎛 そうさ Controls';
+  };
+  // keep the projector picture clean: the button fades out when the mouse is still
+  let hideT;
+  const wake = () => { btn.classList.add('show'); clearTimeout(hideT); hideT = setTimeout(() => btn.classList.remove('show'), 3500); };
+  window.addEventListener('pointermove', wake);
+  wake();
+}
+if (EMBED) {
+  $('start')?.remove();
+  document.body.classList.add('embed');
+}
+
 // ---------------------------------------------------------------- loop
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -363,11 +458,12 @@ function frame() {
   app.glow.update(dt);
   app.water.update(dt);
   app.beams.update(dt);
+  updateCamera(dt);
   controls.update();
   composer.render();
   requestAnimationFrame(frame);
 }
-applyNight(1);
+applyNight(nightTarget);
 setQuality(qIdx, false);
 setExposure(expIdx, false);
 frame();

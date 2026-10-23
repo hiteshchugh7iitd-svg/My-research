@@ -13,9 +13,15 @@
     <span id="pillServer" class="pill bad">● サーバー Server</span>
     <span id="pillDisplays" class="pill">🖥 0 displays</span>
     <a class="pill" href="/sop.html" target="_blank">📘 使い方 SOP</a>
+    <button id="btnLive" class="pill">📺 ライブ Live city</button>
     <button id="btnWall" class="primary">🌏 3Dウォールを開く Open 3D Wall</button>
   </div>
 </header>
+
+<div id="live" hidden>
+  <iframe id="liveFrame" title="Live 3D city" allow="fullscreen"></iframe>
+  <button id="btnLiveClose" title="close">✕</button>
+</div>
 
 <main>
   <aside class="col left">
@@ -62,7 +68,19 @@
         <button id="btnPickFolder">📂 別のフォルダを見張る Watch another folder (browser)</button>
       </div>
       <p class="small" id="folderStatus"></p>
-      <label class="filebtn">🖼 画像をえらぶ Upload scan/photo<input type="file" id="fileInput" accept="image/*" multiple></label>
+      <div class="row">
+        <label class="filebtn">🖼 画像をえらぶ Upload scan/photo<input type="file" id="fileInput" accept="image/*" multiple></label>
+        <label class="filebtn">📸 写真をとる Take photo<input type="file" id="photoInput" accept="image/*" capture="environment"></label>
+      </div>
+      <label class="small sens">🎨 うすい色の感度 Light-colour sensitivity
+        <input type="range" id="sens" min="1" max="5" step="1" value="4"> <b id="sensVal">4</b>
+      </label>
+      <p class="small">うすい色が消える時は大きく、紙のよごれが色になる時は小さく。Raise it if pale colours disappear; lower it if paper smudges turn into colour.</p>
+    </details>
+
+    <details id="phonePanel">
+      <summary>📱 スマホ・タブレット Phone remote</summary>
+      <div id="phoneBody" class="small"></div>
     </details>
 
     <details id="manualPanel">
@@ -92,6 +110,9 @@
         <button id="btnCam">▶ カメラON</button>
         <button id="btnCapture" disabled>📸 とる Capture</button>
       </div>
+      <div class="row" id="expRow" hidden>
+        <label class="small">☀ カメラの明るさ Camera exposure <input type="range" id="camExp"></label>
+      </div>
     </details>
 
     <details>
@@ -111,12 +132,17 @@
         <button id="btnDemo">🎲 サンプル Demo ×6</button>
       </div>
       <div class="row">
-        <button id="btnNight">🌙/☀ 昼夜 Day/Night</button>
+        <button id="btnNight">🌆/🌙/☀ 空 Sky (dusk/night/day)</button>
         <button id="btnTour">🎥 カメラ旋回 Camera tour</button>
       </div>
       <div class="row">
         <button id="btnBright">☀ 明るさ Brightness (projector)</button>
         <button id="btnQuality">🎛 画質 Quality</button>
+      </div>
+      <div class="row">
+        <button id="btnView">🎥 視点 View</button>
+        <button id="btnVivid">🎨 プロジェクター色 Projector colours</button>
+        <button id="btnFollow">📷 追いかけ Follow new</button>
       </div>
       <div class="row">
         <label class="small">🔊 <input type="range" id="volume" min="0" max="100" value="70"></label>
@@ -142,6 +168,7 @@
   </div>
 </div>
 
+<script src="vendor/qrcode/qrcode.js"></script>
 <script type="module" src="js/operator.js"></script>
 </body>
 </html>

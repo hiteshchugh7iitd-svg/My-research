@@ -5,3 +5,4 @@ scans/gallery.json
 scans/seen.json
 scans/inbox/*
 !scans/inbox/.gitkeep
+scans/settings.json

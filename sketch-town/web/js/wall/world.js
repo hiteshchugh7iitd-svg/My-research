@@ -5,7 +5,10 @@ import * as THREE from 'three';
 // Camera looks toward -Z; +X is right (harbour side).
 
 const UP = new THREE.Vector3(0, 1, 0);
-const rand = (a, b) => a + Math.random() * (b - a);
+// seeded random: every screen (projector, laptop, phone) builds the identical city
+let seed = 20261023;
+const rnd = () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+const rand = (a, b) => a + rnd() * (b - a);
 
 export const BAY_OUTLINE = [[28, -58], [70, -66], [104, -40], [108, 4], [88, 36], [52, 40], [34, 30], [27, 6], [24, -26]];
 export const LANDMARKS = [
@@ -115,16 +118,20 @@ function buildSky(scene, uniforms) {
 }
 
 // ================================================================ ground
-function buildGround(scene) {
+function buildGround(scene, bayOutline) {
   const tex = canvasTexture(1024, 1024, (c, w, h) => {
     c.fillStyle = '#1c2a40'; c.fillRect(0, 0, w, h);
     c.strokeStyle = 'rgba(150,190,255,0.10)'; c.lineWidth = 5;
     for (let i = 0; i <= 16; i++) { c.beginPath(); c.moveTo(i * 64, 0); c.lineTo(i * 64, h); c.stroke(); c.beginPath(); c.moveTo(0, i * 64); c.lineTo(w, i * 64); c.stroke(); }
     for (let i = 0; i < 90; i++) { c.fillStyle = `hsla(${120 + Math.random() * 60},45%,${22 + Math.random() * 12}%,0.55)`; c.fillRect(Math.floor(Math.random() * 16) * 64 + 6, Math.floor(Math.random() * 16) * 64 + 6, 52, 52); }
   });
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(12, 12);
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(420, 64), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95 }));
-  ground.rotation.x = -Math.PI / 2;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(1 / 70, 1 / 70); // shape UVs are world units
+  // a hole where the bay is, so fish can swim in a real basin below the water
+  const disc = new THREE.Shape().absarc(0, 0, 420, 0, Math.PI * 2, false);
+  disc.holes.push(new THREE.Path(bayOutline.slice(0, -1).map(p => new THREE.Vector2(p.x, -p.z)).reverse()));
+  const geo = new THREE.ShapeGeometry(disc, 64);
+  geo.rotateX(-Math.PI / 2);
+  const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95 }));
   ground.receiveShadow = true;
   scene.add(ground);
   return ground;
@@ -168,17 +175,46 @@ function buildBay(scene, uniforms) {
         vec2 cell = floor(p*2.0), lp = fract(p*2.0) - 0.5;
         float sparkle = step(0.97, fract(sin(dot(cell, vec2(12.9,78.2))) * 43758.5 + t*0.3)) * smoothstep(0.12, 0.0, length(lp)) * uNight;
         col += vec3(0.6,0.9,1.0) * sparkle * 0.6;
-        gl_FragColor = vec4(col, 1.0);
+        // see-through: you look into the water from above, the edges mirror the sky
+        gl_FragColor = vec4(col, mix(0.3, 0.92, fr));
       }`,
+    transparent: true,
   }));
+  water.renderOrder = 1;
   water.position.y = 0.06;
   water.receiveShadow = true;
   scene.add(water);
+  // basin: sandy floor and walls below the see-through water
+  const DEPTH = 5;
+  const floorTex = canvasTexture(512, 512, (c, w, h) => {
+    c.fillStyle = '#2e9c9a'; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 260; i++) {
+      c.strokeStyle = `rgba(200,255,240,${0.05 + Math.random() * 0.12})`; c.lineWidth = 2 + Math.random() * 3;
+      c.beginPath(); const x = Math.random() * w, y = Math.random() * h;
+      c.ellipse(x, y, 10 + Math.random() * 30, 6 + Math.random() * 18, Math.random() * 3, 0, Math.PI * 2); c.stroke();
+    }
+  });
+  floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping; floorTex.repeat.set(1 / 14, 1 / 14);
+  const floorGeo = new THREE.ShapeGeometry(shape, 24);
+  floorGeo.rotateX(-Math.PI / 2);
+  const floor = new THREE.Mesh(floorGeo, new THREE.MeshStandardMaterial({ map: floorTex, color: 0xbff7ee, roughness: 0.9, emissive: 0x0a4a4a, emissiveIntensity: 0.5 }));
+  floor.position.y = -DEPTH;
+  scene.add(floor);
+  const wallPos = [];
+  for (let i = 0; i < outline.length; i++) {
+    const a = outline[i], b2 = outline[(i + 1) % outline.length];
+    wallPos.push(a.x, 0.05, a.z, b2.x, 0.05, b2.z, a.x, -DEPTH, a.z, b2.x, 0.05, b2.z, b2.x, -DEPTH, b2.z, a.x, -DEPTH, a.z);
+  }
+  const wallGeo = new THREE.BufferGeometry();
+  wallGeo.setAttribute('position', new THREE.Float32BufferAttribute(wallPos, 3));
+  wallGeo.computeVertexNormals();
+  scene.add(new THREE.Mesh(wallGeo, new THREE.MeshStandardMaterial({ color: 0x1f6f78, roughness: 0.9, side: THREE.DoubleSide })));
+
   // white promenade edge
   const edge = new THREE.Mesh(new THREE.TubeGeometry(curve, 240, 0.45, 6, true),
     new THREE.MeshStandardMaterial({ color: 0xf4f1ff, emissive: 0x8899ff, emissiveIntensity: 0.25 }));
   scene.add(edge);
-  return { water, curve };
+  return { water, curve, outline, depth: DEPTH };
 }
 
 // ============================================================== landmarks
@@ -446,7 +482,7 @@ function buildHighway(scene, pts, mats) {
   const curve = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p)), true, 'centripetal');
   const length = curve.getLength();
   const N = Math.ceil(length / 1.0);
-  const width = 6.4, thick = 0.6;
+  const width = 9, thick = 0.6;
   const frames = [];
   for (let i = 0; i <= N; i++) {
     const t = i / N;
@@ -564,8 +600,8 @@ export function buildWorld(scene) {
     uRipples: { value: Array.from({ length: 8 }, () => new THREE.Vector3(0, 0, -1)) },
   };
   const sky = buildSky(scene, uniforms);
-  buildGround(scene);
   const bay = buildBay(scene, uniforms);
+  buildGround(scene, bay.outline);
   const flyer = buildFlyer(scene);
   const trees = buildSupertrees(scene);
   const mbs = buildMBS(scene);
@@ -580,7 +616,7 @@ export function buildWorld(scene) {
   };
   const highways = [
     buildHighway(scene, [[-20, 5, -10], [-23, 6, -40], [-6, 8, -52], [16, 8, -52], [27, 7, -38], [13, 6, -18], [9, 5, 4], [-4, 4.5, 11], [-16, 4.5, 4]], mats),
-    buildHighway(scene, [[-68, 4.5, 12], [-60, 5, -12], [-46, 7, -6], [-28, 10, 0], [-10, 10.5, 16], [8, 8, 28], [2, 5.5, 40], [-30, 4.5, 36], [-56, 4.5, 30]], mats),
+    buildHighway(scene, [[-68, 4.5, 12], [-60, 5, -12], [-46, 8, -6], [-28, 12, 0], [-10, 12.5, 16], [8, 9, 28], [2, 5.5, 40], [-30, 4.5, 36], [-56, 4.5, 30]], mats),
   ];
 
   const winMats = [...mbs.winMats];
@@ -591,7 +627,7 @@ export function buildWorld(scene) {
   const free = (x, z, clear) =>
     !pointInPoly(x, z, BAY_OUTLINE) &&
     LANDMARKS.every(l => Math.hypot(x - l.x, z - l.z) > l.r + clear) &&
-    samples.every(p => Math.hypot(x - p.x, z - p.z) > 5.5 + clear) &&
+    samples.every(p => Math.hypot(x - p.x, z - p.z) > 7 + clear) &&
     BAY_OUTLINE.every(([bx, bz]) => Math.hypot(x - bx, z - bz) > 3);
   const plots = [];
   for (let x = -76; x <= 26; x += 8) for (let z = -48; z <= 44; z += 8) {
