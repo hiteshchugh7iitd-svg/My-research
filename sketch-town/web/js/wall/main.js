@@ -16,10 +16,10 @@ import { Particles, Beams } from './fx.js';
 const LIMITS = { vehicle: 36, building: 30, jet: 10, boat: 10, fish: 14, rocket: 6, heli: 8 };
 // camera views: [V] / operator button cycles them. "city" is the default, closer than the old wide shot.
 const VIEWS = [
-  { ja: 'まち', en: 'City', pos: [-6, 30, 70], target: [-6, 5, -2] },
+  { ja: 'まち', en: 'City', pos: [-6, 36, 88], target: [-6, 5, -4] },
   { ja: 'ぜんたい', en: 'Wide', pos: [0, 42, 102], target: [0, 7, -10] },
-  { ja: 'どうろ', en: 'Highway', pos: [-30, 20, 46], target: [-14, 6, 6] },
-  { ja: 'うみ', en: 'Bay', pos: [54, 24, 50], target: [62, -1, -8] },
+  { ja: 'どうろ', en: 'Highway', pos: [-34, 24, 56], target: [-14, 6, 6] },
+  { ja: 'うみ', en: 'Bay', pos: [52, 29, 62], target: [62, -1, -8] },
 ].map(v => ({ ...v, pos: new THREE.Vector3(...v.pos), target: new THREE.Vector3(...v.target) }));
 let viewIdx = 0;
 const HOME = VIEWS[0];
@@ -41,7 +41,7 @@ document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x1a1236, 0.0028);
-const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.5, 2000);
+const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.5, 2000);
 camera.position.copy(HOME.pos);
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -292,7 +292,7 @@ function flyTo(v) { fly = { pos: v.pos.clone(), target: v.target.clone() }; cont
 app.onArrive = actor => {
   if (!followNew || EMBED) return;
   const s = actor.parts.size;
-  const dist = THREE.MathUtils.clamp(Math.max(s.w, s.h) * 2.6, 12, 34);
+  const dist = THREE.MathUtils.clamp(Math.max(s.w, s.h) * 4, 20, 48);
   const back = { pos: camera.position.clone(), target: controls.target.clone() };
   spot = { actor, until: performance.now() + 9500, dist, back: spot?.back || back };
 };
