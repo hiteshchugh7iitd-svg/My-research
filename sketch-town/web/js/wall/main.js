@@ -16,7 +16,7 @@ import { Particles, Beams } from './fx.js';
 const LIMITS = { vehicle: 36, building: 30, jet: 10, boat: 10, fish: 14, rocket: 6, heli: 8 };
 // camera views: [V] / operator button cycles them. "city" is the default, closer than the old wide shot.
 const VIEWS = [
-  { ja: 'まち', en: 'City', pos: [-6, 36, 88], target: [-6, 5, -4] },
+  { ja: 'まち', en: 'City', pos: [-4, 36, 96], target: [-2, 8, -20] },
   { ja: 'ぜんたい', en: 'Wide', pos: [0, 42, 102], target: [0, 7, -10] },
   { ja: 'どうろ', en: 'Highway', pos: [-34, 24, 56], target: [-14, 6, 6] },
   { ja: 'うみ', en: 'Bay', pos: [52, 29, 62], target: [62, -1, -8] },
@@ -230,7 +230,7 @@ function applyNight(n) {
   moon.color.setHSL(THREE.MathUtils.lerp(0.12, 0.62, n), 0.4, 0.9);
   bloom.strength = THREE.MathUtils.lerp(0.35, 0.85, n);
   scene.fog.color.setHSL(THREE.MathUtils.lerp(0.58, 0.72, n), 0.45, THREE.MathUtils.lerp(0.78, 0.14, n));
-  scene.fog.density = THREE.MathUtils.lerp(0.0011, 0.0028, n);
+  scene.fog.density = THREE.MathUtils.lerp(0.0007, 0.0018, n);
   for (const m of app.world.winMats) m.emissiveIntensity = THREE.MathUtils.lerp(0.15, 0.9, n);
 }
 

@@ -10,7 +10,7 @@ const UP = new THREE.Vector3(0, 1, 0);
 const WAKE = new THREE.Color(0.85, 0.95, 1);
 
 // Bigger on the wall than the sheet's base scale, so cars and trucks read well on a projector.
-const KIND_SCALE = { vehicle: 1.45, jet: 1.35, heli: 1.4, boat: 1.35, fish: 1.25, rocket: 1.2, building: 1.1 };
+const KIND_SCALE = { vehicle: 1.2, jet: 1.15, heli: 1.2, boat: 1.15, fish: 1.1, rocket: 1.0, building: 0.95 };
 
 // Seeded random per drawing: every screen (projector, laptop, phone) puts it in the same place.
 function seededRandom(str) {
