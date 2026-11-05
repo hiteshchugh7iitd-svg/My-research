@@ -451,6 +451,7 @@ export class Fish extends Actor {
     }
     this.place(t);
     this.animatePoke(dt);
+    if (this.label) this.label.position.y = Math.max(2, 1.6 - this.root.position.y); // keep the name above the water
     const fast = this.boost > 0 || this.jump >= 0;
     this.parts.swim.uTime.value += dt * (fast ? 1.8 : 1);
     this.parts.swim.uAmp.value = fast ? 1.4 : 1;

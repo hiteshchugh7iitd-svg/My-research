@@ -82,7 +82,14 @@ export function drawLabels(ctx, sheet, tpl) {
   ctx.fillText(`${tpl.name_ja}  ${tpl.name_en}`, sheet.w / 2, 82);
   ctx.font = '28px "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('なまえ Name: ____________', 170, sheet.code.y);
+  // name box (optional): the scanner cuts the child's handwriting out of it and shows it above the drawing
+  ctx.font = 'bold 26px "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif';
+  ctx.fillText('なまえ', 170, sheet.code.y - 14);
+  ctx.font = '20px "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif';
+  ctx.fillText('Name', 172, sheet.code.y + 16);
+  const nb = sheet.nameBox;
+  ctx.strokeStyle = '#9a9a9a'; ctx.lineWidth = 2;
+  ctx.strokeRect(nb[0], nb[1], nb[2] - nb[0], nb[3] - nb[1]);
   ctx.textAlign = 'right';
   ctx.fillText('ぬってスキャン! Color & scan!', sheet.w - 170, sheet.code.y);
   ctx.restore();

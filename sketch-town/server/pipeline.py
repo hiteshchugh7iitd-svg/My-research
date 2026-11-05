@@ -277,6 +277,33 @@ def dominant_color(rgba):
     return "#%02x%02x%02x" % (r, g, b)
 
 
+def extract_name(sheet_bgr):
+    """Cut the handwritten name out of the name box. Returns an RGBA image of just the
+    ink (pencil, pen or crayon), or None when the box is empty."""
+    x0, y0, x1, y1 = SHEET["nameBox"]
+    crop = sheet_bgr[y0 + 5:y1 - 5, x0 + 5:x1 - 5]
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    paper = max(120.0, float(np.percentile(gray, 85)))
+    lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB).astype(np.float32)
+    chroma = np.hypot(lab[:, :, 1] - 128, lab[:, :, 2] - 128)
+    ink = ((gray < paper * 0.68) | (chroma > 28)).astype(np.uint8) * 255
+    # remove what's left of the printed box border (long straight lines)
+    for k in ((41, 1), (1, 31)):
+        line = cv2.morphologyEx(ink, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, k))
+        ink = cv2.subtract(ink, cv2.dilate(line, np.ones((3, 3), np.uint8)))
+    ink = cv2.morphologyEx(ink, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
+    if cv2.countNonZero(ink) < 150:
+        return None
+    ys, xs = np.nonzero(ink)
+    ya, yb = max(0, ys.min() - 6), min(ink.shape[0], ys.max() + 7)
+    xa, xb = max(0, xs.min() - 6), min(ink.shape[1], xs.max() + 7)
+    alpha = cv2.GaussianBlur(cv2.dilate(ink, np.ones((2, 2), np.uint8)), (3, 3), 0)[ya:yb, xa:xb]
+    color = crop[ya:yb, xa:xb].astype(np.float32)
+    # darken pale pencil so the name is readable on the wall
+    color = np.clip(color * np.where(chroma[ya:yb, xa:xb, None] > 28, 0.9, 0.35), 0, 255).astype(np.uint8)
+    return np.dstack([color, alpha])
+
+
 def process(img, template_id=None, registered=False, boost=True, force_template=False, corners=None, sensitivity=3):
     """Return (rgba, info). `registered=True` means img is already the canonical sheet.
     `force_template=True` uses `template_id` even if the sheet's code says otherwise
@@ -294,7 +321,9 @@ def process(img, template_id=None, registered=False, boost=True, force_template=
     if tpl is None:
         tpl = TEMPLATES.get(template_id) or TEMPLATES["truck"]
     rgba = cutout(sheet, tpl, boost, sensitivity)
+    name_img = extract_name(sheet) if method in ("fiducials", "manual-corners") else None
     return rgba, {
+        "nameImg": name_img,
         "template": tpl["id"],
         "kind": tpl["kind"],
         "method": method,
@@ -333,6 +362,8 @@ def render_test_sheet(tpl, scale=1.0, fill=True, seed=0):
             hs = fs * FID["hole"]
             o = (fs - hs) / 2
             cv2.rectangle(img, (int(x + o), int(y + o)), (int(x + o + hs), int(y + o + hs)), (255, 255, 255), -1)
+    nb = [int(v * k) for v in SHEET["nameBox"]]
+    cv2.rectangle(img, (nb[0], nb[1]), (nb[2], nb[3]), (154, 154, 154), max(1, int(2 * k)))
     cs = SHEET["code"]["size"] * k
     for i, x in enumerate(SHEET["code"]["xs"]):
         p1 = (int(x * k - cs / 2), int(SHEET["code"]["y"] * k - cs / 2))

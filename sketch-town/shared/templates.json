@@ -18,7 +18,13 @@
    ],
    "size": 44
   },
-  "stroke": 7
+  "stroke": 7,
+  "nameBox": [
+   300,
+   1082,
+   690,
+   1158
+  ]
  },
  "templates": [
   {

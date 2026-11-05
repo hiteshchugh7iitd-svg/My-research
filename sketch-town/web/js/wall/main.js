@@ -183,14 +183,58 @@ async function addItem(item, { instant = false } = {}) {
   const actor = createActor(app, item, tpl, texture);
   if (!actor) return;
   app.actors.push(actor);
+  if (item.name || item.nameImg) addNameLabel(actor, item);
   if (instant) {
     scene.add(actor.root);
     actor.active = true;
   } else {
     app.ufos.enqueue(actor);
-    app.toast(`🛸 あたらしいなかま! ${tpl.name_ja} がやってきた! A new ${tpl.name_en} is arriving!`);
+    app.toast(item.name
+      ? `🛸 ${item.name} の ${tpl.name_ja} がやってきた! ${item.name}'s ${tpl.name_en} is arriving!`
+      : `🛸 あたらしいなかま! ${tpl.name_ja} がやってきた! A new ${tpl.name_en} is arriving!`);
   }
   updateHud();
+}
+
+// ---------------------------------------------------------- name labels
+// The child's name floats above their drawing: typed on the operator station, or their
+// own handwriting cut from the sheet's name box. [L] / operator button hides them.
+let showNames = store.get('st_names', true);
+async function addNameLabel(actor, item) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 128;
+  const g = c.getContext('2d');
+  const pill = () => {
+    g.fillStyle = 'rgba(255,255,255,0.9)';
+    g.strokeStyle = item.color || '#ff7a59'; g.lineWidth = 8;
+    g.beginPath(); g.roundRect(6, 6, 500, 116, 58); g.fill(); g.stroke();
+  };
+  pill();
+  if (item.name) {
+    g.fillStyle = '#2b2140'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    let size = 64;
+    do { g.font = `bold ${size}px "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", "Noto Sans JP", sans-serif`; size -= 4; }
+    while (g.measureText(item.name).width > 440 && size > 24);
+    g.fillText(item.name, 256, 68);
+  } else {
+    const img = await new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = item.nameImg; });
+    if (!img) return;
+    const k = Math.min(440 / img.width, 96 / img.height);
+    g.drawImage(img, 256 - img.width * k / 2, 64 - img.height * k / 2, img.width * k, img.height * k);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  // slightly below full white so the glow (bloom) doesn't wash the name out
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthWrite: false, transparent: true, color: 0xb8b8b8 }));
+  const s = actor.parts.size;
+  const flying = ['jet', 'heli', 'rocket'].includes(actor.tpl.kind);
+  sprite.position.y = actor.tpl.kind === 'fish' ? 2 : flying ? 3 : s.h + 1.6;
+  sprite.scale.set(5.2, 1.3, 1);
+  sprite.renderOrder = 5;
+  sprite.visible = showNames;
+  sprite.userData.isLabel = true;
+  actor.label = sprite;
+  actor.root.add(sprite);
 }
 
 function removeActor(a) {
@@ -330,6 +374,10 @@ function command(cmd) {
     case 'home': spot = null; viewIdx = 0; flyTo(HOME); break;
     case 'view': spot = null; viewIdx = (viewIdx + 1) % VIEWS.length; flyTo(VIEWS[viewIdx]); app.toast(`🎥 ${VIEWS[viewIdx].ja} ${VIEWS[viewIdx].en}`, 1500); break;
     case 'vivid': vivid.enabled = !vivid.enabled; store.set('st_vivid', vivid.enabled); app.toast(`🎨 プロジェクター色 Projector colours: ${vivid.enabled ? 'ON' : 'OFF'}`, 2000); break;
+    case 'names':
+      showNames = !showNames; store.set('st_names', showNames);
+      app.actors.forEach(a => { if (a.label) a.label.visible = showNames; });
+      app.toast(`🏷 なまえ表示 Names: ${showNames ? 'ON' : 'OFF'}`, 1800); break;
     case 'follow': followNew = !followNew; store.set('st_follow', followNew); app.toast(`📷 追いかけ Follow new drawings: ${followNew ? 'ON' : 'OFF'}`, 2000); break;
     case 'quality': setQuality(qIdx + 1); store.set('st_quality', qIdx); break;
     case 'brightness': setExposure(expIdx + 1); store.set('st_exposure', expIdx); break;
@@ -348,6 +396,7 @@ window.addEventListener('keydown', e => {
   else if (k === 'v') command({ type: 'view' });
   else if (k === 'p') command({ type: 'vivid' });
   else if (k === 'c') command({ type: 'follow' });
+  else if (k === 'l') command({ type: 'names' });
   else if (k === 'm') app.audio.setVolume(app.audio.volume > 0 ? 0 : 0.7);
   else if (k === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
 });

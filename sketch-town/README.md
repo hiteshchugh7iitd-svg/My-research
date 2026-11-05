@@ -114,6 +114,10 @@ It lists the recent files in the scanner folder with their status (✅ done, ⚠
 
 The step-by-step classroom procedure is in **`Sketch_Town_SOP.pdf`** (also on the operator station under *📘 使い方 SOP*).
 
+**Names (optional):** a name written in the sheet's *なまえ / Name* box appears above the drawing in the
+child's own handwriting. Or type a name in the operator station's *✏️ Name* field: it goes with the next
+drawing, upload, photo or scanner sheet (tick *Keep for next* to reuse it). **L** shows or hides names.
+
 ## 4. Coloring sheets
 
 On the operator station, open *🧾 Print coloring sheets* and print **this sheet** or **all 6**

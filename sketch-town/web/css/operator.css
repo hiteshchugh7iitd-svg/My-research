@@ -141,4 +141,8 @@ button.pill { font-size: 13px; padding: 5px 12px; border-radius: 99px; }
 /* inside the wall's control drawer */
 body.embed header .brand small, body.embed #btnWall, body.embed #btnLive, body.embed #live { display: none !important; }
 body.embed main { grid-template-columns: 1fr; padding: 8px; }
+.namebar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; font-weight: 700; }
+.namebar input#personName { font: inherit; font-size: 18px; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--line); width: min(320px, 100%); margin-left: 6px; }
+.namebar small { font-weight: 400; color: var(--muted); }
+.namehint { margin: 4px 0 0; }
 @media print { body * { display: none !important; } }

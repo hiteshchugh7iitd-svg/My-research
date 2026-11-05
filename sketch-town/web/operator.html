@@ -53,6 +53,13 @@
       <div class="lightbar" id="lightbar"></div>
       <div class="bedmsg" id="bedMsg"></div>
     </div>
+    <div class="namebar">
+      <label>✏️ なまえ <small>(にゅうりょくは自由 optional)</small>
+        <input id="personName" maxlength="24" placeholder="Name / なまえ" autocomplete="off"></label>
+      <label class="small"><input type="checkbox" id="keepName"> つぎも同じ名前 Keep for next</label>
+    </div>
+    <p class="small namehint">名前は絵・アップロード・写真・つぎのスキャナー1枚に付きます。紙の「なまえ」欄に書いた字は自動で表示されます。
+      The name goes with the next drawing, upload, photo or scanner sheet. A name handwritten in the sheet's name box is shown automatically.</p>
     <button id="btnSend" class="send">✨ 3. スキャンしておくる! Scan &amp; Send to the City ✨</button>
   </section>
 
@@ -143,6 +150,7 @@
         <button id="btnView">🎥 視点 View</button>
         <button id="btnVivid">🎨 プロジェクター色 Projector colours</button>
         <button id="btnFollow">📷 追いかけ Follow new</button>
+        <button id="btnNames">🏷 なまえ表示 Names</button>
       </div>
       <div class="row">
         <label class="small">🔊 <input type="range" id="volume" min="0" max="100" value="70"></label>

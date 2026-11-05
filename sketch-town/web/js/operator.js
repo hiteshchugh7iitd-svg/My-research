@@ -200,7 +200,7 @@ $('btnSend').onclick = async () => {
   drawOutline(o, sheet, state.tpl);
   const blob = await new Promise(r => out.toBlob(r, 'image/png'));
   try {
-    const r = await fetch('/api/submit', { method: 'POST', body: blob, headers: { 'X-Template': state.tpl.id } });
+    const r = await fetch('/api/submit', { method: 'POST', body: blob, headers: { 'X-Template': state.tpl.id, 'X-Name': takeName() } });
     const item = await r.json();
     if (!r.ok) throw new Error(item.error);
     audio.chime();
@@ -216,7 +216,7 @@ $('btnSend').onclick = async () => {
 
 async function postScan(blob, source, label = '', corners = null) {
   const forced = $('overrideTpl').value;
-  const headers = { 'X-Source': source, 'X-Template': forced || state.tpl.id, 'X-Label': encodeURIComponent(label) };
+  const headers = { 'X-Source': source, 'X-Template': forced || state.tpl.id, 'X-Label': encodeURIComponent(label), 'X-Name': takeName() };
   if (forced) headers['X-Force-Template'] = '1';
   if (corners) headers['X-Corners'] = JSON.stringify(corners);
   try {
@@ -238,6 +238,9 @@ async function refreshStatus() {
     $('pillDisplays').textContent = `🖥 ${s.displays} displays`;
     if (!s.wia) { $('btnWia').disabled = true; $('btnWia').title = 'Windows only (pip install pywin32)'; }
     if (document.activeElement !== $('sens')) { $('sens').value = s.sensitivity; $('sensVal').textContent = s.sensitivity; }
+    if (!refreshStatus.named && document.activeElement !== $('personName')) {
+      $('personName').value = s.scanName || ''; $('keepName').checked = !!s.keepName; refreshStatus.named = true;
+    }
     renderPhonePanel(s.lan || []);
     if (!refreshStatus.logged) { s.log.forEach(e => addLog(e.level, e.text, e.time)); refreshStatus.logged = true; }
   } catch { /* server offline, pill shows it */ }
@@ -294,6 +297,18 @@ $('photoInput').onchange = async e => {
 };
 $('sens').oninput = e => { $('sensVal').textContent = e.target.value; };
 $('sens').onchange = e => bus.command({ type: 'sensitivity', value: +e.target.value });
+
+// ------------------------------------------------------------- name (optional)
+// The typed name rides along with the next drawing / upload / photo, and the server
+// keeps it for the next scanner file too. Without "keep", it clears after one use.
+function takeName() {
+  const v = $('personName').value.trim();
+  if (v && !$('keepName').checked) { $('personName').value = ''; sendScanName(); }
+  return encodeURIComponent(v);
+}
+function sendScanName() { bus.command({ type: 'scanname', value: $('personName').value.trim(), keep: $('keepName').checked }); }
+$('personName').addEventListener('change', sendScanName);
+$('keepName').addEventListener('change', sendScanName);
 
 // ------------------------------------------------------------ phone remote
 function renderPhonePanel(urls) {
@@ -365,7 +380,7 @@ async function refreshInbox() {
 async function sendInboxFile(name, corners = null) {
   try {
     const r = await fetch('/api/inbox/process', {
-      method: 'POST', body: JSON.stringify({ name, template: $('overrideTpl').value || null, corners }),
+      method: 'POST', body: JSON.stringify({ name, template: $('overrideTpl').value || null, corners, person: decodeURIComponent(takeName()) }),
     });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error);
@@ -527,6 +542,7 @@ $('btnQuality').onclick = () => bus.command({ type: 'quality' });
 $('btnView').onclick = () => bus.command({ type: 'view' });
 $('btnVivid').onclick = () => bus.command({ type: 'vivid' });
 $('btnFollow').onclick = () => bus.command({ type: 'follow' });
+$('btnNames').onclick = () => bus.command({ type: 'names' });
 $('volume').oninput = e => bus.command({ type: 'volume', value: +e.target.value / 100 });
 $('btnClearWall').onclick = async () => {
   if (!confirm('街の絵をぜんぶ消しますか? Remove every drawing from the city (and the saved gallery)?')) return;
@@ -545,11 +561,14 @@ function addLog(level, text, time = Date.now() / 1000) {
 // ------------------------------------------------------------------ bus
 const bus = new Bus(ev => {
   if (ev.type === 'log') { addLog(ev.level, ev.text, ev.time); if ($('manualPanel').open) refreshInbox(); }
+  else if (ev.type === 'command' && ev.command.type === 'scanname' && document.activeElement !== $('personName')) {
+    $('personName').value = ev.command.value || ''; $('keepName').checked = !!ev.command.keep;
+  }
   else if (ev.type === 'scanning' && ev.label !== 'drawing') { sweep(); message('🔎 スキャン中… Scanning…'); }
   else if (ev.type === 'spawn' && ev.item.source !== 'drawing') {
     audio.chime();
     showPreview(ev.item.url);
-    message(`✨ ${ev.item.label || ''} → ${data.byId[ev.item.template]?.name_ja || ''}`);
+    message(`✨ ${ev.item.name ? ev.item.name + ' — ' : ''}${ev.item.label || ''} → ${data.byId[ev.item.template]?.name_ja || ''}`);
   }
 });
 bus.onStatus = ok => {
