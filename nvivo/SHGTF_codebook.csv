@@ -1,0 +1,84 @@
+﻿Parent code,Child code,Definition / when to use
+01 Formal specification,,"SHGTF Level 1. Code POLICY DOCUMENTS (HAP, DoE circulars, MoE/NDMA guidance, IMD products, school-held instructions) using the 7-element actionability template. Code only what the text says explicitly; put researcher inference in a memo."
+01 Formal specification,Trigger,"The hazard condition that activates the provision (e.g. heatwave declared, Orange/Red alert, temperature threshold)."
+01 Formal specification,Target actor,"Who the provision names as responsible (Education Dept, DoE, DDE, HoS, teacher, SMC...). Note when no school-level actor is named."
+01 Formal specification,Action,"What is required or recommended (timing change, suspend outdoor activity, water, ORS...)."
+01 Formal specification,Decision authority,Who may authorise the action. Code absence of a stated authority as well.
+01 Formal specification,Resources assumed,"Resources the provision takes for granted (water, power, fans, ORS, staff, transport)."
+01 Formal specification,Exception or contingency,"What happens if the action cannot be done, or for special groups (primary pupils, exams, delayed guardians)."
+01 Formal specification,Reporting and review,"Reporting lines, feedback, after-season review obligations."
+02 Pre-season preparedness,,RQ1. Readiness established BEFORE any live alert (Sakurai sensei feedback: 'what happens before the disaster?'). Use for both documents and interviews.
+02 Pre-season preparedness,Pre-season directive received,Any instruction received before the first in-season alert. Note date and channel.
+02 Pre-season preparedness,Heat focal person and alternate,Named staff responsible for heat; whether an alternate exists.
+02 Pre-season preparedness,School heat plan,Written or unwritten school plan for heat.
+02 Pre-season preparedness,Infrastructure checks,"Pre-season checks or repairs of water points, fans, ventilation, shade, coolers."
+02 Pre-season preparedness,Parent contact verification,"Updating phone lists, WhatsApp groups, guardian authorisation before summer."
+02 Pre-season preparedness,Health referral and first aid,"ORS stock, first-aid kit, link to dispensary/PHC, heat-illness recognition training."
+02 Pre-season preparedness,Training and awareness,"Staff or student training, assemblies, drills relating to heat."
+02 Pre-season preparedness,Preparedness collapses into response,"Evidence that the first in-season alert IS the instruction, i.e. no real pre-season phase."
+03 Warning receipt and transmission,,How heat information reaches the school. Separates transmission failure from translation failure (rival explanation 1).
+03 Warning receipt and transmission,Channel,"Circular, DoE portal, zonal WhatsApp, SMS, news/TV, IMD app, word of mouth."
+03 Warning receipt and transmission,Timing of receipt,"Same day, previous evening, after school began, too late to act."
+03 Warning receipt and transmission,Non-receipt,"Alert or circular not received, or received by one actor only."
+04 Interpretive coherence,,RQ2. How principals and teachers understand the information. Do NOT code 'divergence' here; find divergence later with a Matrix Coding Query on Role.
+04 Interpretive coherence,Meaning of alert colours,"What Yellow, Orange or Red means to the respondent in terms of school action."
+04 Interpretive coherence,Escalation monitoring,Tracking a worsening trajectory (Yellow to Orange to Red); who watches the forecast and how.
+04 Interpretive coherence,Misinterpretation,Understanding that conflicts with the source document or official clarification.
+04 Interpretive coherence,Shared understanding,Respondent describes a common understanding across staff.
+05 Decision jurisdiction,,RQ2. Formal and perceived authority boundaries. Code only after checking what the formal rule says (fieldwork sequence step 4).
+05 Decision jurisdiction,Principal discretion,Actions the principal believes they may take without higher approval.
+05 Decision jurisdiction,Awaits higher order,Waiting for DoE/DDE/zonal instruction before acting.
+05 Decision jurisdiction,Teacher discretion,What a teacher may decide in the classroom without the principal.
+05 Decision jurisdiction,Upward escalation,Seeking permission or reporting upward; the route used.
+05 Decision jurisdiction,Accountability concern,"Fear of blame, show-cause notices, audit, or parent complaints shaping the decision."
+06 Operational feasibility,,RQ3. Whether an authorised action can actually be carried out. Test this before attributing non-action to motivation or habit.
+06 Operational feasibility,Water and power,"Supply failures, outages, broken coolers or fans."
+06 Operational feasibility,Building exposure,"Top-floor rooms, tin roofs, poor ventilation, no shade, exposed assembly area."
+06 Operational feasibility,Staffing,"Too few staff to supervise, cover, or manage dispersal."
+06 Operational feasibility,"Timetable, exams and midday meal","Constraints from exams, syllabus, PM POSHAN timing, assembly."
+06 Operational feasibility,Shift structure,Double-shift constraints (morning girls / evening boys etc.).
+06 Operational feasibility,Commute and transport,"Students walking, public transport, distance, peak-hour exposure on the way home."
+07 Protective continuity,,"RQ4. Whether the action protects children across school, travel and home, or transfers unmanaged risk."
+07 Protective continuity,Exposure reduction in school,"Cancelling outdoor activity, moving to cooler rooms, water breaks."
+07 Protective continuity,Age-differentiated supervision,Different handling for primary vs older pupils.
+07 Protective continuity,Heat-illness response,What happens when a child shows heat symptoms.
+07 Protective continuity,Controlled dispersal,How early release is organised and communicated.
+07 Protective continuity,Custodial-care provision,Children whose guardians cannot or will not collect them; holding arrangements; overnight stay question (Sakurai sensei feedback).
+07 Protective continuity,Risk transfer,Action that shifts exposure or care burden outside the school (e.g. release at peak heat).
+08 Institutional learning,,Whether experience changes future preparedness or policy.
+08 Institutional learning,Records and logs,"Incident registers, attendance notes, heat logs."
+08 Institutional learning,Feedback upward,Reporting problems or suggestions to zone/DoE/DDMA.
+08 Institutional learning,Revised procedure,Changes made after a past season.
+08 Institutional learning,Recurring unresolved barrier,Same problem reported across seasons with no change.
+09 School context,,"Braun et al. (2011) contexts as described in talk. Fixed school facts (zone, shift, section) go in the School classification, not here."
+09 School context,Situated context,"Student age mix, enrolment, neighbourhood, history of the school."
+09 School context,Material context,"Building, water, shade, power, budget."
+09 School context,Professional context,"Staff roles, experience, relationships, leadership style."
+09 School context,External context,"DoE/DDE/DDMA, parents, health services, local politics."
+10 Mechanisms,,Realist-informed C-M-O. Code the reasoning or response that explains WHY an outcome happened. Link to context and outcome codes with relationships or memos.
+10 Mechanisms,Familiar-practice reliance,"Falling back on routines used for other situations (Sakurai et al., 2026)."
+10 Mechanisms,Accountability avoidance,Delay or inaction to avoid blame.
+10 Mechanisms,Anticipatory legitimacy,Actor sees early adjustment as legitimate and expected.
+10 Mechanisms,Adaptive improvisation,Effective local improvisation that could be institutionalised.
+10 Mechanisms,Person-dependent fragility,Practice that depends on one individual and would fail without them.
+10 Mechanisms,Compliance without protection,Formally compliant action that does not protect the child.
+11 Outcomes,,What the school actually did in the scenario or past event.
+11 Outcomes,Anticipatory action,Acted before the severe alert.
+11 Outcomes,Reactive action,Acted only after a live alert or explicit order.
+11 Outcomes,Partial implementation,"Some indicated actions taken, others not."
+11 Outcomes,No action,No change in routine.
+12 Hazard comparison,,"Heat compared with fire, earthquake or other hazards. Tests whether heat is less institutionalised rather than assuming it."
+12 Hazard comparison,Fire,"Fire drills, fire safety audits, NOC."
+12 Hazard comparison,Earthquake,"Earthquake drills, structural safety."
+12 Hazard comparison,Other hazards,"Floods, air pollution (GRAP), cold wave, COVID."
+13 Vignette responses,,"Structural codes. Auto-code transcripts by Heading 1 so each vignette answer lands here, then intersect with SHGTF codes."
+13 Vignette responses,V1 Before the alert,"Mid-April, seasonal outlook only."
+13 Vignette responses,V2 Escalation,"Lower warning today, worsening forecast."
+13 Vignette responses,V3 Jurisdiction under local stress,"Hot rooms, water partly down."
+13 Vignette responses,V4 Severe conditions with pupils present,Red/severe while students are in school.
+13 Vignette responses,V5 Delayed guardian,Early dispersal but pupils cannot be collected.
+14 Emergent codes,,"Inductive holding area. Anything SHGTF did not anticipate. Review weekly; promote, merge or delete. Every new code gets a memo saying why it exists."
+14 Emergent codes,Informal peer networks,"Principal WhatsApp groups, calls to neighbouring schools."
+14 Emergent codes,Parent pressure,Parents demanding closure or continuation.
+14 Emergent codes,Ad hoc zonal messaging,Unofficial instructions from zone or DDE office.
+99 Good quotes,,"Vivid, citable passages for the thesis. Code here in addition to the analytic code."

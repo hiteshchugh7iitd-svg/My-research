@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeBook xmlns="urn:QDA-XML:codebook:1.0" origin="SHGTF West Delhi study">
+  <Codes>
+    <Code guid="45b9d089-9c1a-53ce-ad6e-1d8476c91b17" name="01 Formal specification" isCodable="true" color="#C0504D">
+      <Description>SHGTF Level 1. Code POLICY DOCUMENTS (HAP, DoE circulars, MoE/NDMA guidance, IMD products, school-held instructions) using the 7-element actionability template. Code only what the text says explicitly; put researcher inference in a memo.</Description>
+      <Code guid="3d4c8823-2aa8-5b8c-b9d4-b64d2ec29db3" name="Trigger" isCodable="true" color="#C0504D">
+        <Description>The hazard condition that activates the provision (e.g. heatwave declared, Orange/Red alert, temperature threshold).</Description>
+      </Code>
+      <Code guid="de37043c-839b-524f-b8df-309c72226fb8" name="Target actor" isCodable="true" color="#C0504D">
+        <Description>Who the provision names as responsible (Education Dept, DoE, DDE, HoS, teacher, SMC...). Note when no school-level actor is named.</Description>
+      </Code>
+      <Code guid="3051b8a0-89dd-5d6e-b92e-f10a2dd916e7" name="Action" isCodable="true" color="#C0504D">
+        <Description>What is required or recommended (timing change, suspend outdoor activity, water, ORS...).</Description>
+      </Code>
+      <Code guid="7afe256f-b767-5d80-9956-a634289cffcd" name="Decision authority" isCodable="true" color="#C0504D">
+        <Description>Who may authorise the action. Code absence of a stated authority as well.</Description>
+      </Code>
+      <Code guid="d3a778c3-68f4-51c0-b3a9-4f6dadc18fdc" name="Resources assumed" isCodable="true" color="#C0504D">
+        <Description>Resources the provision takes for granted (water, power, fans, ORS, staff, transport).</Description>
+      </Code>
+      <Code guid="bc427d12-d18b-5bba-8044-8106026b300a" name="Exception or contingency" isCodable="true" color="#C0504D">
+        <Description>What happens if the action cannot be done, or for special groups (primary pupils, exams, delayed guardians).</Description>
+      </Code>
+      <Code guid="8de66791-d75f-5014-a95a-de858f72882b" name="Reporting and review" isCodable="true" color="#C0504D">
+        <Description>Reporting lines, feedback, after-season review obligations.</Description>
+      </Code>
+    </Code>
+    <Code guid="f38362af-e612-5640-a942-d1ab1edc872f" name="02 Pre-season preparedness" isCodable="true" color="#4F81BD">
+      <Description>RQ1. Readiness established BEFORE any live alert (Sakurai sensei feedback: 'what happens before the disaster?'). Use for both documents and interviews.</Description>
+      <Code guid="58ab5ae4-946e-541e-9023-28f953f2ea9f" name="Pre-season directive received" isCodable="true" color="#4F81BD">
+        <Description>Any instruction received before the first in-season alert. Note date and channel.</Description>
+      </Code>
+      <Code guid="2a4454fd-525f-5e6d-96f1-d3c36dd83892" name="Heat focal person and alternate" isCodable="true" color="#4F81BD">
+        <Description>Named staff responsible for heat; whether an alternate exists.</Description>
+      </Code>
+      <Code guid="87434065-2f8d-59a3-9e1b-bc274cc1c3c1" name="School heat plan" isCodable="true" color="#4F81BD">
+        <Description>Written or unwritten school plan for heat.</Description>
+      </Code>
+      <Code guid="55986e75-aeb5-5c10-b390-4b754b2ab45f" name="Infrastructure checks" isCodable="true" color="#4F81BD">
+        <Description>Pre-season checks or repairs of water points, fans, ventilation, shade, coolers.</Description>
+      </Code>
+      <Code guid="80ee87c5-0aa1-5126-a10e-090ca852315d" name="Parent contact verification" isCodable="true" color="#4F81BD">
+        <Description>Updating phone lists, WhatsApp groups, guardian authorisation before summer.</Description>
+      </Code>
+      <Code guid="a656c70a-2469-55cb-b231-6b7a0b7be8b7" name="Health referral and first aid" isCodable="true" color="#4F81BD">
+        <Description>ORS stock, first-aid kit, link to dispensary/PHC, heat-illness recognition training.</Description>
+      </Code>
+      <Code guid="c71553b3-3868-5987-9f20-56465bd9951a" name="Training and awareness" isCodable="true" color="#4F81BD">
+        <Description>Staff or student training, assemblies, drills relating to heat.</Description>
+      </Code>
+      <Code guid="3b8f55ae-13ca-5092-b2ae-01557c721837" name="Preparedness collapses into response" isCodable="true" color="#4F81BD">
+        <Description>Evidence that the first in-season alert IS the instruction, i.e. no real pre-season phase.</Description>
+      </Code>
+    </Code>
+    <Code guid="ce94374d-517c-5de4-9008-36ef5f15d8b0" name="03 Warning receipt and transmission" isCodable="true" color="#9BBB59">
+      <Description>How heat information reaches the school. Separates transmission failure from translation failure (rival explanation 1).</Description>
+      <Code guid="a86c9b4f-52a0-5afd-987b-63e8fb23ea0c" name="Channel" isCodable="true" color="#9BBB59">
+        <Description>Circular, DoE portal, zonal WhatsApp, SMS, news/TV, IMD app, word of mouth.</Description>
+      </Code>
+      <Code guid="aa2714c9-d54e-51c9-9522-79452dcc6e9e" name="Timing of receipt" isCodable="true" color="#9BBB59">
+        <Description>Same day, previous evening, after school began, too late to act.</Description>
+      </Code>
+      <Code guid="d053c92c-ce5c-5927-826b-f37eddfb0e56" name="Non-receipt" isCodable="true" color="#9BBB59">
+        <Description>Alert or circular not received, or received by one actor only.</Description>
+      </Code>
+    </Code>
+    <Code guid="a826e4fa-490b-56bc-8a2a-688548ae3d7b" name="04 Interpretive coherence" isCodable="true" color="#8064A2">
+      <Description>RQ2. How principals and teachers understand the information. Do NOT code 'divergence' here; find divergence later with a Matrix Coding Query on Role.</Description>
+      <Code guid="29a75ad1-7be5-5bf0-8886-f27920da534c" name="Meaning of alert colours" isCodable="true" color="#8064A2">
+        <Description>What Yellow, Orange or Red means to the respondent in terms of school action.</Description>
+      </Code>
+      <Code guid="6fd6779a-b0ee-5a1c-af87-7d82e21db0ca" name="Escalation monitoring" isCodable="true" color="#8064A2">
+        <Description>Tracking a worsening trajectory (Yellow to Orange to Red); who watches the forecast and how.</Description>
+      </Code>
+      <Code guid="da2ea514-d2cb-5560-99c4-798bc0d5cf59" name="Misinterpretation" isCodable="true" color="#8064A2">
+        <Description>Understanding that conflicts with the source document or official clarification.</Description>
+      </Code>
+      <Code guid="8645477e-a812-5dcd-a839-4354e7bcfedf" name="Shared understanding" isCodable="true" color="#8064A2">
+        <Description>Respondent describes a common understanding across staff.</Description>
+      </Code>
+    </Code>
+    <Code guid="35cebea0-0899-5ab5-ac43-0811f73ca821" name="05 Decision jurisdiction" isCodable="true" color="#F79646">
+      <Description>RQ2. Formal and perceived authority boundaries. Code only after checking what the formal rule says (fieldwork sequence step 4).</Description>
+      <Code guid="60e70db7-179d-5d45-a345-ae69707759b6" name="Principal discretion" isCodable="true" color="#F79646">
+        <Description>Actions the principal believes they may take without higher approval.</Description>
+      </Code>
+      <Code guid="2d13d460-e231-5dce-9901-471b247d8469" name="Awaits higher order" isCodable="true" color="#F79646">
+        <Description>Waiting for DoE/DDE/zonal instruction before acting.</Description>
+      </Code>
+      <Code guid="5865560b-61b7-52f7-9036-fc9ee5e5e2a7" name="Teacher discretion" isCodable="true" color="#F79646">
+        <Description>What a teacher may decide in the classroom without the principal.</Description>
+      </Code>
+      <Code guid="bb85a5f3-91bb-553b-b4c2-cdb1afc47833" name="Upward escalation" isCodable="true" color="#F79646">
+        <Description>Seeking permission or reporting upward; the route used.</Description>
+      </Code>
+      <Code guid="a433b556-72d5-55eb-abcc-4222616e6aca" name="Accountability concern" isCodable="true" color="#F79646">
+        <Description>Fear of blame, show-cause notices, audit, or parent complaints shaping the decision.</Description>
+      </Code>
+    </Code>
+    <Code guid="93a927cb-08ab-5ef5-bc20-a6230cc57cf4" name="06 Operational feasibility" isCodable="true" color="#4BACC6">
+      <Description>RQ3. Whether an authorised action can actually be carried out. Test this before attributing non-action to motivation or habit.</Description>
+      <Code guid="c854a0c0-a4da-56bd-a566-03fe63f3f65c" name="Water and power" isCodable="true" color="#4BACC6">
+        <Description>Supply failures, outages, broken coolers or fans.</Description>
+      </Code>
+      <Code guid="f1ab2091-eb0a-5452-9592-76365c3111b0" name="Building exposure" isCodable="true" color="#4BACC6">
+        <Description>Top-floor rooms, tin roofs, poor ventilation, no shade, exposed assembly area.</Description>
+      </Code>
+      <Code guid="91e94d12-ebd2-5e39-a71f-8702d9e7041c" name="Staffing" isCodable="true" color="#4BACC6">
+        <Description>Too few staff to supervise, cover, or manage dispersal.</Description>
+      </Code>
+      <Code guid="a83dfa3a-81a4-50ca-82ff-66699d50b7c7" name="Timetable, exams and midday meal" isCodable="true" color="#4BACC6">
+        <Description>Constraints from exams, syllabus, PM POSHAN timing, assembly.</Description>
+      </Code>
+      <Code guid="010bb75f-84eb-5fb3-ada9-a0af62c52121" name="Shift structure" isCodable="true" color="#4BACC6">
+        <Description>Double-shift constraints (morning girls / evening boys etc.).</Description>
+      </Code>
+      <Code guid="e5c85ab3-a734-517a-b0ca-b5a49b4c8883" name="Commute and transport" isCodable="true" color="#4BACC6">
+        <Description>Students walking, public transport, distance, peak-hour exposure on the way home.</Description>
+      </Code>
+    </Code>
+    <Code guid="a4cedc89-58e3-5585-9842-fd3ba572cf1a" name="07 Protective continuity" isCodable="true" color="#E36C09">
+      <Description>RQ4. Whether the action protects children across school, travel and home, or transfers unmanaged risk.</Description>
+      <Code guid="8c157531-9212-50c1-8383-b471f04caff7" name="Exposure reduction in school" isCodable="true" color="#E36C09">
+        <Description>Cancelling outdoor activity, moving to cooler rooms, water breaks.</Description>
+      </Code>
+      <Code guid="63de7876-6df9-51b5-8fff-f36fd74f0472" name="Age-differentiated supervision" isCodable="true" color="#E36C09">
+        <Description>Different handling for primary vs older pupils.</Description>
+      </Code>
+      <Code guid="dc83db43-ab79-52e8-b903-0bc77ca67eb9" name="Heat-illness response" isCodable="true" color="#E36C09">
+        <Description>What happens when a child shows heat symptoms.</Description>
+      </Code>
+      <Code guid="9c4ba025-9ebd-5395-bc95-8721d3fcb507" name="Controlled dispersal" isCodable="true" color="#E36C09">
+        <Description>How early release is organised and communicated.</Description>
+      </Code>
+      <Code guid="fa26c827-e430-59b9-a809-21533ff4989d" name="Custodial-care provision" isCodable="true" color="#E36C09">
+        <Description>Children whose guardians cannot or will not collect them; holding arrangements; overnight stay question (Sakurai sensei feedback).</Description>
+      </Code>
+      <Code guid="70d76a78-1fe2-5cfd-9768-86947b2d17cf" name="Risk transfer" isCodable="true" color="#E36C09">
+        <Description>Action that shifts exposure or care burden outside the school (e.g. release at peak heat).</Description>
+      </Code>
+    </Code>
+    <Code guid="d9c97932-1302-57d6-bdc7-c68a621d0850" name="08 Institutional learning" isCodable="true" color="#76923C">
+      <Description>Whether experience changes future preparedness or policy.</Description>
+      <Code guid="62d4c16d-c378-5499-8264-b0b33d2e836d" name="Records and logs" isCodable="true" color="#76923C">
+        <Description>Incident registers, attendance notes, heat logs.</Description>
+      </Code>
+      <Code guid="b255c299-651e-5146-b9c3-135335b7700c" name="Feedback upward" isCodable="true" color="#76923C">
+        <Description>Reporting problems or suggestions to zone/DoE/DDMA.</Description>
+      </Code>
+      <Code guid="666d79e2-ca9e-541c-8335-ba3b6a4e19d7" name="Revised procedure" isCodable="true" color="#76923C">
+        <Description>Changes made after a past season.</Description>
+      </Code>
+      <Code guid="ae9ca222-5df6-5b60-b5cb-7961da6c2c36" name="Recurring unresolved barrier" isCodable="true" color="#76923C">
+        <Description>Same problem reported across seasons with no change.</Description>
+      </Code>
+    </Code>
+    <Code guid="298f23dc-1bd9-5d0b-bc7d-30fca429cd5b" name="09 School context" isCodable="true" color="#7F7F7F">
+      <Description>Braun et al. (2011) contexts as described in talk. Fixed school facts (zone, shift, section) go in the School classification, not here.</Description>
+      <Code guid="78d92a19-ef5b-51a4-87a0-6106b3455a5f" name="Situated context" isCodable="true" color="#7F7F7F">
+        <Description>Student age mix, enrolment, neighbourhood, history of the school.</Description>
+      </Code>
+      <Code guid="36f31717-faf3-5b47-9c2c-4d4faf561aa8" name="Material context" isCodable="true" color="#7F7F7F">
+        <Description>Building, water, shade, power, budget.</Description>
+      </Code>
+      <Code guid="99ae2930-8601-5704-9841-fca454e68777" name="Professional context" isCodable="true" color="#7F7F7F">
+        <Description>Staff roles, experience, relationships, leadership style.</Description>
+      </Code>
+      <Code guid="ff15adf8-43ca-5432-907f-e59ed879a142" name="External context" isCodable="true" color="#7F7F7F">
+        <Description>DoE/DDE/DDMA, parents, health services, local politics.</Description>
+      </Code>
+    </Code>
+    <Code guid="7ae7db59-276e-57f4-bd28-989a01480301" name="10 Mechanisms" isCodable="true" color="#B65708">
+      <Description>Realist-informed C-M-O. Code the reasoning or response that explains WHY an outcome happened. Link to context and outcome codes with relationships or memos.</Description>
+      <Code guid="1ea93981-e830-547b-9a1c-0966d0563b39" name="Familiar-practice reliance" isCodable="true" color="#B65708">
+        <Description>Falling back on routines used for other situations (Sakurai et al., 2026).</Description>
+      </Code>
+      <Code guid="5af334de-4930-5443-8cf1-d9e7d3cd9422" name="Accountability avoidance" isCodable="true" color="#B65708">
+        <Description>Delay or inaction to avoid blame.</Description>
+      </Code>
+      <Code guid="e61854f4-87b0-5561-a97e-f33cec3e3643" name="Anticipatory legitimacy" isCodable="true" color="#B65708">
+        <Description>Actor sees early adjustment as legitimate and expected.</Description>
+      </Code>
+      <Code guid="600e7a52-c7d5-5bbc-b303-d97c4914b6fb" name="Adaptive improvisation" isCodable="true" color="#B65708">
+        <Description>Effective local improvisation that could be institutionalised.</Description>
+      </Code>
+      <Code guid="c93c0239-8e32-5cc2-a374-64fcb43bbd29" name="Person-dependent fragility" isCodable="true" color="#B65708">
+        <Description>Practice that depends on one individual and would fail without them.</Description>
+      </Code>
+      <Code guid="37f3fd39-e40a-5886-a357-e965acf3213b" name="Compliance without protection" isCodable="true" color="#B65708">
+        <Description>Formally compliant action that does not protect the child.</Description>
+      </Code>
+    </Code>
+    <Code guid="d1c94ff0-b7cf-50ab-a78f-3b286e2aa5b6" name="11 Outcomes" isCodable="true" color="#1F497D">
+      <Description>What the school actually did in the scenario or past event.</Description>
+      <Code guid="5e0ee190-556e-5f33-9240-04707e897aba" name="Anticipatory action" isCodable="true" color="#1F497D">
+        <Description>Acted before the severe alert.</Description>
+      </Code>
+      <Code guid="b3b9cba5-6de5-5d10-9c70-905a31793d98" name="Reactive action" isCodable="true" color="#1F497D">
+        <Description>Acted only after a live alert or explicit order.</Description>
+      </Code>
+      <Code guid="6e8f7423-5c0f-52be-bad7-c9a5be866e6d" name="Partial implementation" isCodable="true" color="#1F497D">
+        <Description>Some indicated actions taken, others not.</Description>
+      </Code>
+      <Code guid="b0c1eb7e-ba5c-5035-aac6-c894448fd04d" name="No action" isCodable="true" color="#1F497D">
+        <Description>No change in routine.</Description>
+      </Code>
+    </Code>
+    <Code guid="74754d86-6a2d-5e7d-8122-d2e9d6d3d61b" name="12 Hazard comparison" isCodable="true" color="#953734">
+      <Description>Heat compared with fire, earthquake or other hazards. Tests whether heat is less institutionalised rather than assuming it.</Description>
+      <Code guid="bb797bbb-f452-5618-a788-92d01d644cb1" name="Fire" isCodable="true" color="#953734">
+        <Description>Fire drills, fire safety audits, NOC.</Description>
+      </Code>
+      <Code guid="fe44a7ac-32e1-56f5-868f-0c8ae880e2db" name="Earthquake" isCodable="true" color="#953734">
+        <Description>Earthquake drills, structural safety.</Description>
+      </Code>
+      <Code guid="53a93acb-f765-5c8f-b123-21cb4fa76d50" name="Other hazards" isCodable="true" color="#953734">
+        <Description>Floods, air pollution (GRAP), cold wave, COVID.</Description>
+      </Code>
+    </Code>
+    <Code guid="c94b282b-bcb9-556d-861d-3e946961462c" name="13 Vignette responses" isCodable="true" color="#31859B">
+      <Description>Structural codes. Auto-code transcripts by Heading 1 so each vignette answer lands here, then intersect with SHGTF codes.</Description>
+      <Code guid="18d91dcb-602f-556b-af49-90ba87435292" name="V1 Before the alert" isCodable="true" color="#31859B">
+        <Description>Mid-April, seasonal outlook only.</Description>
+      </Code>
+      <Code guid="2e2c7291-3a22-503a-ac12-3ace7e16bd12" name="V2 Escalation" isCodable="true" color="#31859B">
+        <Description>Lower warning today, worsening forecast.</Description>
+      </Code>
+      <Code guid="7f7f2626-f266-579b-8310-aca5c1c1d7b7" name="V3 Jurisdiction under local stress" isCodable="true" color="#31859B">
+        <Description>Hot rooms, water partly down.</Description>
+      </Code>
+      <Code guid="6d835d33-d245-56da-84db-f4367ef62256" name="V4 Severe conditions with pupils present" isCodable="true" color="#31859B">
+        <Description>Red/severe while students are in school.</Description>
+      </Code>
+      <Code guid="9d5f1ba4-b803-5c26-bd90-6b62ea22236e" name="V5 Delayed guardian" isCodable="true" color="#31859B">
+        <Description>Early dispersal but pupils cannot be collected.</Description>
+      </Code>
+    </Code>
+    <Code guid="c5c826c6-a032-520c-94ad-4998bea566e1" name="14 Emergent codes" isCodable="true" color="#5F497A">
+      <Description>Inductive holding area. Anything SHGTF did not anticipate. Review weekly; promote, merge or delete. Every new code gets a memo saying why it exists.</Description>
+      <Code guid="7b9fb250-4dd0-57d8-8cd5-0706a84c814c" name="Informal peer networks" isCodable="true" color="#5F497A">
+        <Description>Principal WhatsApp groups, calls to neighbouring schools.</Description>
+      </Code>
+      <Code guid="65d26218-de77-5a33-8c9f-b0425579561c" name="Parent pressure" isCodable="true" color="#5F497A">
+        <Description>Parents demanding closure or continuation.</Description>
+      </Code>
+      <Code guid="62ebca9c-0ed8-5178-ac7f-b02cc61bcb95" name="Ad hoc zonal messaging" isCodable="true" color="#5F497A">
+        <Description>Unofficial instructions from zone or DDE office.</Description>
+      </Code>
+    </Code>
+    <Code guid="6db54831-e08c-573f-82c4-da7fe368ca75" name="99 Good quotes" isCodable="true" color="#C3A400">
+      <Description>Vivid, citable passages for the thesis. Code here in addition to the analytic code.</Description>
+    </Code>
+  </Codes>
+</CodeBook>
